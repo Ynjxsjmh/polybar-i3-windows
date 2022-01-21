@@ -9,8 +9,6 @@ from string import Template
 
 from icon_resolver import IconResolver
 
-#: Base 1 index of the font that should be used for icons
-ICON_FONT = 3
 
 ICONS = [
     ('class=*.slack.com', '\uf3ef'),
@@ -87,7 +85,7 @@ def make_icon(app):
         'name': app.name,
     })
 
-    return Template('%{T$font}$icon%{T-}').substitute(font=ICON_FONT, icon=icon)
+    return Template('%{T$font}$icon%{T-}').substitute(font=config['general']['icon-font'], icon=icon)
 
 
 def make_title(app):
