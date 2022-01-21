@@ -42,12 +42,21 @@ def render_apps(i3):
     # Get current workspace
     focused = tree.find_focused()
     workspace = focused.workspace()
-    apps = workspace.leaves()
-    apps.sort(key=lambda app: app.workspace().name)
 
-    out = f"%{{O{config['title']['interval']}}}".join(format_entry(app) for app in apps)
+    # Ensure first level nodes only contain the tabbed container
+    tabbed_con = workspace.nodes[0]
+    entries = []
+    for node in tabbed_con.nodes:
+        if len(node.nodes):
+            entry = get_title(node)
+        else:
+            entry = format_entry(node)
 
-    print(out, flush=True)
+        entries.append(entry)
+
+    titlebar = f"%{{O{config['title']['interval']}}}".join(entries)
+
+    print(titlebar, flush=True)
 
 
 def format_entry(app):
@@ -158,6 +167,24 @@ def paint_title(app, icon, title):
     title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
     return title
+
+
+def get_title(node):
+    if len(node.nodes):
+        title = ' '.join(get_title(n) for n in node.nodes)
+        if node.layout == 'splith':
+            title = f'H[{title}]'
+        elif node.layout == 'splitv':
+            title = f'V[{title}]'
+        elif node.layout == 'tabbed':
+            title = f'T[{title}]'
+        elif node.layout == 'stacked':
+            title = f'S[{title}]'
+        else:
+            title = 'not supported'
+        return title
+    else:
+        return node.window_class
 
 
 main()
