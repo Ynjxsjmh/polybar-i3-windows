@@ -89,7 +89,7 @@ def format_entry(app):
 
     title = paint_title(app, icon, title)
 
-    t = Template('%{A1:$left_command:} $title %{A-}')
+    t = Template('%{A1:$left_command:}$title%{A-}')
     entry = t.substitute(left_command=command, title=title)
 
     return entry
@@ -131,7 +131,7 @@ def paint_title(app, icon, title):
         else config['color']['window-underline-color']
 
     if config['title'].getint('underline'):
-        title = Template('%{+u}%{U$color} $title %{-u}').substitute(color=ucolor, title=title)
+        title = Template('%{+u}%{U$color}$title%{-u}').substitute(color=ucolor, title=title)
 
     if config['title'].getboolean('icon'):
         title = icon + title
@@ -139,12 +139,12 @@ def paint_title(app, icon, title):
     fcolor = config['color']['focused-window-front-color'] if app.focused \
         else config['color']['urgent-window-front-color'] if app.urgent  \
         else config['color']['window-front-color']
-    title = Template('%{F$color} $title %{F-}').substitute(color=fcolor, title=title)
+    title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
     bcolor = config['color']['focused-window-background-color'] if app.focused \
         else config['color']['urgent-window-background-color'] if app.urgent  \
         else config['color']['window-background-color']
-    title = Template('%{B$color} $title %{B-}').substitute(color=bcolor, title=title)
+    title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
     return title
 
