@@ -66,9 +66,9 @@ def format_con(con):
     return title
 
 
-def format_win(app):
+def format_win(app, nested=False):
     icon    = make_icon(app)
-    title   = make_title(app)
+    title   = make_title(app, nested=nested)
     command = make_command(app)
 
     title = paint_title(app, icon, title)
@@ -93,7 +93,7 @@ def make_icon(app):
     return Template('%{T$font}$icon%{T-}').substitute(font=config['general']['icon-font'], icon=icon)
 
 
-def make_title(app):
+def make_title(app, nested=False):
     window_class = app.window_class
     window_title = app.window_title
 
@@ -101,8 +101,12 @@ def make_title(app):
     window_num = len(workspace.leaves())
     window_len = config['general'].getint('length') // window_num
 
+    title_type = config['title'].getint('title')
+    if nested:
+        title_type = 1
+
     title = ''
-    if config['title'].getint('title') == 1:
+    if title_type == 1:
         title = window_class
     else:
         title = window_title
@@ -127,7 +131,7 @@ def make_command(app):
     return command
 
 
-def paint_title(app, icon, title, nested=False):
+def paint_title(app, icon, title):
     isIcon = config['title'].getboolean('icon')
     isTitle = config['title'].getint('title') > 0
     underline = config['title'].getint('underline')
@@ -191,7 +195,7 @@ def get_con_title(node):
             title = 'not supported'
         return title
     else:
-        return format_win(node)
+        return format_win(node, nested=True)
 
 
 main()
