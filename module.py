@@ -43,12 +43,15 @@ def render_apps(i3):
     focused = tree.find_focused()
     workspace = focused.workspace()
 
-    # Ensure first level nodes only contain the tabbed container
-    tabbed_con = workspace.nodes[0]
+    if len(workspace.nodes) == 0:
+        print('', flush=True)
+    else:
+        # Ensure first level nodes only contain the tabbed container
+        tabbed_con = workspace.nodes[0]
 
-    titlebar = f"%{{O{config['title']['interval']}}}".join(format_entry(node) for node in tabbed_con.nodes)
+        titlebar = f"%{{O{config['title']['interval']}}}".join(format_entry(node) for node in tabbed_con.nodes)
 
-    print(titlebar, flush=True)
+        print(titlebar, flush=True)
 
 
 def format_entry(node):
