@@ -44,14 +44,15 @@ def render_apps(i3):
     workspace = focused.workspace()
 
     if len(workspace.nodes) == 0:
-        print('', flush=True)
-    else:
+        titlebar = ''
+    elif len(workspace.nodes) == 1 and workspace.nodes[0].layout == 'tabbed':
         # Ensure first level nodes only contain the tabbed container
         tabbed_con = workspace.nodes[0]
-
         titlebar = f"%{{O{config['title']['interval']}}}".join(format_entry(node) for node in tabbed_con.nodes)
+    else:
+        titlebar = f"%{{O{config['title']['interval']}}}".join(format_entry(node) for node in workspace.nodes)
 
-        print(titlebar, flush=True)
+    print(titlebar, flush=True)
 
 
 def format_entry(node):
