@@ -11,6 +11,7 @@ from string import Template
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 COMMAND_PATH = os.path.join(SCRIPT_DIR, 'command.py')
+SCROLL_COMMAND_PATH = os.path.join(SCRIPT_DIR, 'scroll.py')
 
 config = configparser.ConfigParser()
 config.read(os.path.join(SCRIPT_DIR, 'config.ini'))
@@ -56,8 +57,11 @@ def format_entry(app):
 
     title = paint_title(app, icon, title)
 
-    t = Template('%{A1:$left_command:}$title%{A-}')
-    entry = t.substitute(left_command=command, title=title)
+    t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A-}%{A-}%{A-}')
+    entry = t.substitute(left_command=command['left'],
+                         scroll_up_command=command['scroll_up'],
+                         scroll_down_command=command['scroll_down'],
+                         title=title)
 
     return entry
 
@@ -95,8 +99,16 @@ def make_title(app):
 
 def make_command(app):
     left_command = '%s %s' % (COMMAND_PATH, app.id)
+    scroll_up_command = '%s %s' % (SCROLL_COMMAND_PATH, 1)
+    scroll_down_command = '%s %s' % (SCROLL_COMMAND_PATH, 2)
 
-    return left_command
+    command = {
+        'left': left_command,
+        'scroll_up': scroll_up_command,
+        'scroll_down': scroll_down_command,
+    }
+
+    return command
 
 
 def paint_title(app, icon, title):
