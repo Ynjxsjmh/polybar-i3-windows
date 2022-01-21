@@ -9,8 +9,6 @@ from string import Template
 
 from icon_resolver import IconResolver
 
-#: Max length of single window title
-MAX_LENGTH = 26
 #: Base 1 index of the font that should be used for icons
 ICON_FONT = 3
 
@@ -96,14 +94,18 @@ def make_title(app):
     window_class = app.window_class
     window_title = app.window_title
 
+    workspace = app.workspace()
+    window_num = len(workspace.leaves())
+    window_len = config['general'].getint('length') // window_num
+
     title = ''
     if config['title'].getint('title') == 1:
         title = window_class
     else:
         title = window_title
 
-    if len(title) > MAX_LENGTH:
-        title = title[:MAX_LENGTH - 3] + '...'
+    if len(title) > window_len:
+        title = title[:window_len - 3] + '...'
 
     return title
 
