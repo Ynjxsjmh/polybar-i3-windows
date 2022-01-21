@@ -123,17 +123,39 @@ def make_command(app):
 
 
 def paint_title(app, icon, title):
-    if config['title'].getboolean('icon') and config['title'].getint('underline') == 2:
-        title = icon + title
+    isIcon = config['title'].getboolean('icon')
+    isTitle = config['title'].getint('title') > 0
+    underline = config['title'].getint('underline')
 
     ucolor = config['color']['focused-window-underline-color'] if app.focused \
         else config['color']['urgent-window-underline-color'] if app.urgent  \
         else config['color']['window-underline-color']
+    ucolor_t = Template('%{+u}%{U$color}$title%{-u}')
 
-    if config['title'].getint('underline'):
-        title = Template('%{+u}%{U$color}$title%{-u}').substitute(color=ucolor, title=title)
-
-    if config['title'].getboolean('icon') and config['title'].getint('underline') != 2:
+    if isIcon and isTitle and underline == 0:
+        title = icon + title
+    elif isIcon and isTitle and underline == 1:
+        title = ucolor_t.substitute(color=ucolor, title=title)
+        title = icon + title
+    elif isIcon and isTitle and underline == 2:
+        icon = ucolor_t.substitute(color=ucolor, title=icon)
+        title = icon + title
+    elif isIcon and isTitle and underline == 3:
+        title = icon + title
+        title = ucolor_t.substitute(color=ucolor, title=title)
+    elif isIcon and ~isTitle and \
+         (underline == 0 or underline == 1):
+        title = icon
+    elif isIcon and ~isTitle and \
+         (underline == 2 or underline == 3):
+        title = ucolor_t.substitute(color=ucolor, title=icon)
+    elif ~isIcon and isTitle and \
+         (underline == 0 or underline == 2):
+        title = title
+    elif ~isIcon and isTitle and \
+         (underline == 1 or underline == 3):
+        title = ucolor_t.substitute(color=ucolor, title=title)
+    elif ~isIcon and ~isTitle:
         title = icon + title
 
     fcolor = config['color']['focused-window-front-color'] if app.focused \
