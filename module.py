@@ -133,7 +133,7 @@ def paint_title(app, icon, title):
     if config['title'].getint('underline'):
         title = Template('%{+u}%{U$color}$title%{-u}').substitute(color=ucolor, title=title)
 
-    if config['title'].getboolean('icon'):
+    if config['title'].getboolean('icon') and config['title'].getint('underline') != 2:
         title = icon + title
 
     fcolor = config['color']['focused-window-front-color'] if app.focused \
