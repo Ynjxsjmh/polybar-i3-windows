@@ -5,6 +5,7 @@ import asyncio
 import getpass
 import i3ipc
 import platform
+import configparser
 
 from time import sleep
 from string import Template
@@ -42,6 +43,9 @@ FORMATERS = {
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 COMMAND_PATH = os.path.join(SCRIPT_DIR, 'command.py')
 
+config = configparser.ConfigParser()
+config.read(os.path.join(SCRIPT_DIR, 'config.ini'))
+
 icon_resolver = IconResolver(ICONS)
 
 
@@ -73,7 +77,7 @@ def render_apps(i3):
     apps = workspace.leaves()
     apps.sort(key=lambda app: app.workspace().name)
 
-    out = '%{O12}'.join(format_entry(app) for app in apps)
+    out = f"%{{O{config['title']['interval']}}}".join(format_entry(app) for app in apps)
 
     print(out, flush=True)
 
@@ -119,21 +123,27 @@ def make_command(app):
 
 
 def paint_title(app, icon, title):
-    title = icon + title
+    if config['title'].getboolean('icon') and config['title'].getint('underline') == 2:
+        title = icon + title
 
-    ucolor = '#b4619a' if app.focused \
-        else '#e84f4f' if app.urgent  \
-        else '#404040'
-    title = Template('%{+u}%{U$color} $title %{-u}').substitute(color=ucolor, title=title)
+    ucolor = config['color']['focused-window-underline-color'] if app.focused \
+        else config['color']['urgent-window-underline-color'] if app.urgent  \
+        else config['color']['window-underline-color']
 
-    fcolor = '#ffffff' if app.focused \
-        else '#e84f4f' if app.urgent  \
-        else '#404040'
+    if config['title'].getint('underline'):
+        title = Template('%{+u}%{U$color} $title %{-u}').substitute(color=ucolor, title=title)
+
+    if config['title'].getboolean('icon'):
+        title = icon + title
+
+    fcolor = config['color']['focused-window-front-color'] if app.focused \
+        else config['color']['urgent-window-front-color'] if app.urgent  \
+        else config['color']['window-front-color']
     title = Template('%{F$color} $title %{F-}').substitute(color=fcolor, title=title)
 
-    bcolor = '#00000' if app.focused \
-        else '#00000' if app.urgent  \
-        else '#00000'
+    bcolor = config['color']['focused-window-background-color'] if app.focused \
+        else config['color']['urgent-window-background-color'] if app.urgent  \
+        else config['color']['window-background-color']
     title = Template('%{B$color} $title %{B-}').substitute(color=bcolor, title=title)
 
     return title
