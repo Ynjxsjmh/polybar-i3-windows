@@ -1,36 +1,19 @@
 #! /usr/bin/python3
 
 import os
+import re
 import asyncio
 import i3ipc
 import configparser
 
 from string import Template
 
-from icon_resolver import IconResolver
-
-
-ICONS = [
-    ('class=*.slack.com', '\uf3ef'),
-
-    ('class=Chromium', '\ue743'),
-    ('class=Firefox', '\uf738'),
-    ('class=URxvt', '\ue795'),
-    ('class=Code', '\ue70c'),
-    ('class=code-oss-dev', '\ue70c'),
-
-    ('name=mutt', '\uf199'),
-
-    ('*', '\ufaae'),
-]
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 COMMAND_PATH = os.path.join(SCRIPT_DIR, 'command.py')
 
 config = configparser.ConfigParser()
 config.read(os.path.join(SCRIPT_DIR, 'config.ini'))
-
-icon_resolver = IconResolver(ICONS)
 
 
 def main():
@@ -80,10 +63,12 @@ def format_entry(app):
 
 
 def make_icon(app):
-    icon = icon_resolver.resolve({
-        'class': app.window_class,
-        'name': app.name,
-    })
+    # clear unsupported character in key
+    regex = "[\. ]"
+    window_class = re.sub(regex, '', app.window_class)
+    window_class = window_class.lower()
+
+    icon = config['icon'].get(window_class, '')
 
     return Template('%{T$font}$icon%{T-}').substitute(font=config['general']['icon-font'], icon=icon)
 
