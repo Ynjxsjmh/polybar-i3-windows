@@ -5,7 +5,9 @@ import asyncio
 import getpass
 import i3ipc
 import platform
+
 from time import sleep
+from string import Template
 
 from icon_resolver import IconResolver
 
@@ -77,33 +79,30 @@ def render_apps(i3):
 
 
 def format_entry(app):
-    title = make_title(app)
-    u_color = '#b4619a' if app.focused else\
-        '#e84f4f' if app.urgent else\
-        '#404040'
+    icon    = make_icon(app)
+    title   = make_title(app)
+    command = make_command(app)
 
-    return '%%{u%s} %s %%{u-}' % (u_color, title)
-
-
-def make_title(app):
-    out = get_prefix(app) + format_title(app)
-
+    title_ = icon + title
     if app.focused:
-        out = '%{F#fff}' + out + '%{F-}'
+        title_ = '%{F#fff}' + title_ + '%{F-}'
 
-    return '%%{A1:%s %s:}%s%%{A-}' % (COMMAND_PATH, app.id, out)
+    t = Template('%{A1:$left_command:} $title %{A-}')
+    entry = t.substitute(left_command=command, title=title_)
+
+    return entry
 
 
-def get_prefix(app):
+def make_icon(app):
     icon = icon_resolver.resolve({
         'class': app.window_class,
         'name': app.name,
     })
 
-    return ('%%{T%s}%s%%{T-}' % (ICON_FONT, icon))
+    return Template('%{T$font}$icon%{T-}').substitute(font=ICON_FONT, icon=icon)
 
 
-def format_title(app):
+def make_title(app):
     klass = app.window_class
     name = app.name
 
@@ -113,5 +112,12 @@ def format_title(app):
         title = title[:MAX_LENGTH - 3] + '...'
 
     return title
+
+
+def make_command(app):
+    left_command = '%s %s' % (COMMAND_PATH, app.id)
+
+    return left_command
+
 
 main()
