@@ -83,12 +83,10 @@ def format_entry(app):
     title   = make_title(app)
     command = make_command(app)
 
-    title_ = icon + title
-    if app.focused:
-        title_ = '%{F#fff}' + title_ + '%{F-}'
+    title = paint_title(app, icon, title)
 
     t = Template('%{A1:$left_command:} $title %{A-}')
-    entry = t.substitute(left_command=command, title=title_)
+    entry = t.substitute(left_command=command, title=title)
 
     return entry
 
@@ -111,17 +109,34 @@ def make_title(app):
     if len(title) > MAX_LENGTH:
         title = title[:MAX_LENGTH - 3] + '...'
 
-    ucolor = '#b4619a' if app.focused \
-        else '#e84f4f' if app.urgent  \
-        else '#404040'
-
-    return Template('%{+u}%{u$ucolor} $title %{-u}').substitute(ucolor=ucolor, title=title)
+    return title
 
 
 def make_command(app):
     left_command = '%s %s' % (COMMAND_PATH, app.id)
 
     return left_command
+
+
+def paint_title(app, icon, title):
+    title = icon + title
+
+    ucolor = '#b4619a' if app.focused \
+        else '#e84f4f' if app.urgent  \
+        else '#404040'
+    title = Template('%{+u}%{U$color} $title %{-u}').substitute(color=ucolor, title=title)
+
+    fcolor = '#ffffff' if app.focused \
+        else '#e84f4f' if app.urgent  \
+        else '#404040'
+    title = Template('%{F$color} $title %{F-}').substitute(color=fcolor, title=title)
+
+    bcolor = '#00000' if app.focused \
+        else '#00000' if app.urgent  \
+        else '#00000'
+    title = Template('%{B$color} $title %{B-}').substitute(color=bcolor, title=title)
+
+    return title
 
 
 main()
