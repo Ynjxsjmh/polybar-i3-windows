@@ -48,9 +48,9 @@ def render_apps(i3):
     entries = []
     for node in tabbed_con.nodes:
         if len(node.nodes):
-            entry = get_title(node)
+            entry = format_con(node)
         else:
-            entry = format_entry(node)
+            entry = format_win(node)
 
         entries.append(entry)
 
@@ -59,7 +59,13 @@ def render_apps(i3):
     print(titlebar, flush=True)
 
 
-def format_entry(app):
+def format_con(con):
+    title = get_con_title(con)
+
+    return title
+
+
+def format_win(app):
     icon    = make_icon(app)
     title   = make_title(app)
     command = make_command(app)
@@ -120,7 +126,7 @@ def make_command(app):
     return command
 
 
-def paint_title(app, icon, title):
+def paint_title(app, icon, title, nested=False):
     isIcon = config['title'].getboolean('icon')
     isTitle = config['title'].getint('title') > 0
     underline = config['title'].getint('underline')
@@ -169,9 +175,9 @@ def paint_title(app, icon, title):
     return title
 
 
-def get_title(node):
+def get_con_title(node):
     if len(node.nodes):
-        title = ' '.join(get_title(n) for n in node.nodes)
+        title = ' '.join(get_con_title(n) for n in node.nodes)
         if node.layout == 'splith':
             title = f'H[{title}]'
         elif node.layout == 'splitv':
@@ -184,7 +190,7 @@ def get_title(node):
             title = 'not supported'
         return title
     else:
-        return node.window_class
+        return format_win(node)
 
 
 main()
