@@ -2,12 +2,9 @@
 
 import os
 import asyncio
-import getpass
 import i3ipc
-import platform
 import configparser
 
-from time import sleep
 from string import Template
 
 from icon_resolver import IconResolver
@@ -16,9 +13,6 @@ from icon_resolver import IconResolver
 MAX_LENGTH = 26
 #: Base 1 index of the font that should be used for icons
 ICON_FONT = 3
-
-HOSTNAME = platform.node()
-USER = getpass.getuser()
 
 ICONS = [
     ('class=*.slack.com', '\uf3ef'),
@@ -33,12 +27,6 @@ ICONS = [
 
     ('*', '\ufaae'),
 ]
-
-FORMATERS = {
-    'Chromium': lambda title: title.replace(' - Chromium', ''),
-    'Firefox': lambda title: title.replace(' - Mozilla Firefox', ''),
-    'URxvt': lambda title: title.replace('%s@%s: ' % (USER, HOSTNAME), ''),
-}
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 COMMAND_PATH = os.path.join(SCRIPT_DIR, 'command.py')
@@ -105,10 +93,14 @@ def make_icon(app):
 
 
 def make_title(app):
-    klass = app.window_class
-    name = app.name
+    window_class = app.window_class
+    window_title = app.window_title
 
-    title = FORMATERS[klass](name) if klass in FORMATERS else name
+    title = ''
+    if config['title'].getint('title') == 1:
+        title = window_class
+    else:
+        title = window_title
 
     if len(title) > MAX_LENGTH:
         title = title[:MAX_LENGTH - 3] + '...'
