@@ -111,7 +111,11 @@ def make_title(app):
     if len(title) > MAX_LENGTH:
         title = title[:MAX_LENGTH - 3] + '...'
 
-    return title
+    ucolor = '#b4619a' if app.focused \
+        else '#e84f4f' if app.urgent  \
+        else '#404040'
+
+    return Template('%{+u}%{u$ucolor} $title %{-u}').substitute(ucolor=ucolor, title=title)
 
 
 def make_command(app):
