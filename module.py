@@ -45,18 +45,19 @@ def render_apps(i3):
 
     # Ensure first level nodes only contain the tabbed container
     tabbed_con = workspace.nodes[0]
-    entries = []
-    for node in tabbed_con.nodes:
-        if len(node.nodes):
-            entry = format_con(node)
-        else:
-            entry = format_win(node)
 
-        entries.append(entry)
-
-    titlebar = f"%{{O{config['title']['interval']}}}".join(entries)
+    titlebar = f"%{{O{config['title']['interval']}}}".join(format_entry(node) for node in tabbed_con.nodes)
 
     print(titlebar, flush=True)
+
+
+def format_entry(node):
+    if len(node.nodes):
+        entry = format_con(node)
+    else:
+        entry = format_win(node)
+
+    return entry
 
 
 def format_con(con):
