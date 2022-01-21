@@ -14,6 +14,8 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 - [x] Showing split info in title for horizontal and vertical layout
 - [x] Highly customizable styles for window title
 
+Due to lack of mouse hover support by [lemonbar tags](https://github.com/LemonBoy/bar#formatting), there is no mouse hover action.
+
 ## Usage
 
 This script currently only supports tabbed layout. It couldn't ensure the behavior under stacked layout and nested tabbed/stacked layout. Due to [lack of split event](https://github.com/i3/i3/issues/3542) of i3 RPC api, it doesn't ensure real-time display of window split change.
