@@ -43,6 +43,8 @@ line-size = 2
 
 ## Configuration
 
+Configuration file should be placed at the same level of `module.py`and its name should be `config.ini`.
+
 You are highly recommended to edit colors under `color` section to suit your polybar theme.
 
 This script uses `font-2` for icons. You probably want it to have higher size than your regular font. Example:
