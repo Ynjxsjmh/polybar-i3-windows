@@ -82,6 +82,7 @@ def format_win(app, nested=False):
     command = make_command(app)
 
     title = paint_title(app, icon, title)
+    title = paint_window_num(app, title)
 
     t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A-}%{A-}%{A-}')
     entry = t.substitute(left_command=command['left'],
@@ -185,6 +186,44 @@ def paint_title(app, icon, title):
     title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
     return title
+
+
+def paint_window_num(app, title):
+    apps = []
+    get_leaf_nodes(app.workspace(), apps)
+    num = apps.index(app) + 1
+
+    isNum = config['title'].getint('number', 0)
+    isUnderline = config['title'].getboolean('underline-number', False)
+
+    if not isNum:
+        return title
+
+    ucolor = config['color'].get('focused-window-number-underline-color', '#b4619a') if app.focused \
+        else config['color'].get('urgent-window-number-underline-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-number-underline-color', '#404040')
+    if isUnderline:
+        num = Template('%{+u}%{U$color}$num%{-u}').substitute(color=ucolor, num=num)
+
+    fcolor = config['color'].get('focused-window-number-front-color', '#ffffff') if app.focused \
+        else config['color'].get('urgent-window-number-front-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-number-front-color', '#404040')
+    num = Template('%{F$color}$num%{F-}').substitute(color=fcolor, num=num)
+
+    bcolor = config['color'].get('focused-window-number-background-color', '#00000') if app.focused \
+        else config['color'].get('urgent-window-number-background-color',  '#00000') if app.urgent  \
+        else config['color'].get('window-number-background-color', '#00000')
+    num = Template('%{B$color}$num%{B-}').substitute(color=bcolor, num=num)
+
+    return num + title
+
+
+def get_leaf_nodes(node, leafs):
+    if len(node.nodes) == 0:
+        leafs.append(node)
+
+    for n in node.nodes:
+        get_leaf_nodes(n, leafs)
 
 
 def make_con_title(node):
