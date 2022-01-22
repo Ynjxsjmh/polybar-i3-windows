@@ -16,6 +16,11 @@ SCROLL_COMMAND_PATH = os.path.join(SCRIPT_DIR, 'scroll.py')
 config = configparser.ConfigParser()
 config.read(os.path.join(SCRIPT_DIR, 'config.ini'))
 
+default_sections = ['general', 'icon', 'color', 'title']
+for section in default_sections:
+    if not config.has_section(section):
+        config.add_section(section)
+
 
 def main():
     i3 = i3ipc.Connection()
@@ -51,7 +56,7 @@ def render_apps(i3):
     else:
         entries = [ format_entry(node) for node in workspace.nodes ]
 
-    titlebar = "%{O"f"{config['title']['interval']}""}".join(entries)
+    titlebar = "%{O"f"{config['title'].getint('interval', 12)}""}".join(entries)
 
     print(titlebar, flush=True)
 
@@ -95,7 +100,7 @@ def make_icon(app):
 
     icon = config['icon'].get(window_class, '')
 
-    return Template('%{T$font}$icon%{T-}').substitute(font=config['general']['icon-font'], icon=icon)
+    return Template('%{T$font}$icon%{T-}').substitute(font=config['general'].getint('icon-font', 3), icon=icon)
 
 
 def make_title(app, nested=False):
@@ -103,7 +108,7 @@ def make_title(app, nested=False):
     window_title = app.window_title
 
     title = ''
-    title_type = 1 if nested else config['title'].getint('title')
+    title_type = 1 if nested else config['title'].getint('title', 2)
 
     if title_type == 1:
         title = window_class
@@ -111,7 +116,7 @@ def make_title(app, nested=False):
         title = window_title
 
     window_num = len(app.workspace().leaves())
-    window_len = config['general'].getint('length') // window_num
+    window_len = config['general'].getint('length', 100) // window_num
 
     if len(title) > window_len:
         title = title[:window_len - 3] + '...'
@@ -134,13 +139,13 @@ def make_command(app):
 
 
 def paint_title(app, icon, title):
-    isIcon = config['title'].getboolean('icon')
-    isTitle = config['title'].getint('title') > 0
-    underline = config['title'].getint('underline')
+    isIcon = config['title'].getboolean('icon', False)
+    isTitle = config['title'].getint('title', 2) > 0
+    underline = config['title'].getint('underline', 0)
 
-    ucolor = config['color']['focused-window-underline-color'] if app.focused \
-        else config['color']['urgent-window-underline-color'] if app.urgent  \
-        else config['color']['window-underline-color']
+    ucolor = config['color'].get('focused-window-underline-color', '#b4619a') if app.focused \
+        else config['color'].get('urgent-window-underline-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-underline-color', '#404040')
     ucolor_t = Template('%{+u}%{U$color}$title%{-u}')
 
     if isIcon and isTitle and underline == 0:
@@ -169,14 +174,14 @@ def paint_title(app, icon, title):
     elif ~isIcon and ~isTitle:
         title = icon + title
 
-    fcolor = config['color']['focused-window-front-color'] if app.focused \
-        else config['color']['urgent-window-front-color'] if app.urgent  \
-        else config['color']['window-front-color']
+    fcolor = config['color'].get('focused-window-front-color', '#ffffff') if app.focused \
+        else config['color'].get('urgent-window-front-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-front-color', '#404040')
     title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
-    bcolor = config['color']['focused-window-background-color'] if app.focused \
-        else config['color']['urgent-window-background-color'] if app.urgent  \
-        else config['color']['window-background-color']
+    bcolor = config['color'].get('focused-window-background-color', '#00000') if app.focused \
+        else config['color'].get('urgent-window-background-color',  '#00000') if app.urgent  \
+        else config['color'].get('window-background-color', '#00000')
     title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
     return title
