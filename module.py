@@ -77,11 +77,10 @@ def format_con(con):
 
 
 def format_win(app, nested=False):
-    icon    = make_icon(app)
     title   = make_title(app, nested=nested)
     command = make_command(app)
 
-    title = paint_title(app, icon, title)
+    title = paint_window_icon(app, title)
     title = paint_window_num(app, title)
 
     t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A-}%{A-}%{A-}')
@@ -139,7 +138,9 @@ def make_command(app):
     return command
 
 
-def paint_title(app, icon, title):
+def paint_window_icon(app, title):
+    icon = make_icon(app)
+
     isIcon = config['title'].getboolean('icon', False)
     isTitle = config['title'].getint('title', 2) > 0
     underline = config['title'].getint('underline', 0)
