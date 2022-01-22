@@ -102,19 +102,16 @@ def make_title(app, nested=False):
     window_class = app.window_class
     window_title = app.window_title
 
-    workspace = app.workspace()
-    window_num = len(workspace.leaves())
-    window_len = config['general'].getint('length') // window_num
-
-    title_type = config['title'].getint('title')
-    if nested:
-        title_type = 1
-
     title = ''
+    title_type = 1 if nested else config['title'].getint('title')
+
     if title_type == 1:
         title = window_class
     else:
         title = window_title
+
+    window_num = len(app.workspace().leaves())
+    window_len = config['general'].getint('length') // window_num
 
     if len(title) > window_len:
         title = title[:window_len - 3] + '...'
