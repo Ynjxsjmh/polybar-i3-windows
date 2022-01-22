@@ -13,6 +13,7 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 - [x] Highlight urgent window
 - [x] Showing split info in title for horizontal and vertical layout
 - [x] Highly customizable styles for window title
+- [x] Show Window number before window title
 
 Due to lack of mouse hover support by [lemonbar tags](https://github.com/LemonBoy/bar#formatting), there is no mouse hover action.
 
@@ -80,3 +81,8 @@ Variables under `title` section expect values
   - 1: only underline window title
   - 2: only underline window icon
   - 3: underline both window icon and title
+- `number`: integer value, 0/1/2
+  - 0: don't show window number
+  - 1: show window number when long press key (not supported)
+  - 2: always show window number
+- `underline-number`: boolean value, True/False. Whether to underline window number.
