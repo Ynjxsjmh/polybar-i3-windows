@@ -71,7 +71,7 @@ def format_entry(node):
 
 
 def format_con(con):
-    title = get_con_title(con)
+    title = make_con_title(con)
 
     return title
 
@@ -187,9 +187,9 @@ def paint_title(app, icon, title):
     return title
 
 
-def get_con_title(node):
+def make_con_title(node):
     if len(node.nodes):
-        title = ' '.join(get_con_title(n) for n in node.nodes)
+        title = ' '.join(make_con_title(n) for n in node.nodes)
         if node.layout == 'splith':
             title = f'H[{title}]'
         elif node.layout == 'splitv':
