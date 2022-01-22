@@ -47,7 +47,7 @@ Configuration file should be placed at the same level of `module.py`and its name
 
 You are highly recommended to edit colors under `color` section to suit your polybar theme.
 
-This script uses `font-2` for icons. You probably want it to have higher size than your regular font. Example:
+You need to define a UTF8 support font in polybar setting to display all characters in title bar. This script uses `font-2` for icons in the default setting. You probably want it to have higher size than your regular font. Example:
 
 ```ini
 font-0 = NotoSans Nerd Font:size=10;2
