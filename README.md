@@ -1,8 +1,8 @@
 # Polybar i3 windows script
 
-Miss windows-like list of all windows in your taskbar?
+This script aims to bring back the ability of original i3 title bar in tabbed layout. The picture below is a comparison of them:
 
-<img src="https://user-images.githubusercontent.com/9664601/56872872-05365f00-6a2e-11e9-8383-1849e5980b48.png">
+<img src="https://user-images.githubusercontent.com/40143136/150626018-73919959-b9cc-4b3e-8797-7a3afb16cd18.png">
 
 This script is an enhancement version of [meelkor/polybar-i3-windows](https://github.com/meelkor/polybar-i3-windows).
 
