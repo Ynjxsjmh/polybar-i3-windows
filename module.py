@@ -100,8 +100,12 @@ def make_icon(app):
     window_class = window_class.lower()
 
     icon = config['icon'].get(window_class, '')
+    font = config['general'].getint('icon-font', 0)
 
-    return Template('%{T$font}$icon%{T-}').substitute(font=config['general'].getint('icon-font', 3), icon=icon)
+    if font:
+        return Template('%{T$font}$icon%{T-}').substitute(font=font, icon=icon)
+    else:
+        return icon
 
 
 def make_title(app, nested=False):
