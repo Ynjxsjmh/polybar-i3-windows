@@ -95,8 +95,10 @@ def format_win(app, nested=False):
 def make_icon(app):
     # clear unsupported character in key
     regex = "[\. ]"
-    app.window_class = app.window_class if app.window_class else ''
-    window_class = re.sub(regex, '', app.window_class)
+    window_class = app.window_class if app.window_class \
+        else app.window_instance if app.window_instance \
+        else ''
+    window_class = re.sub(regex, '', window_class)
     window_class = window_class.lower()
 
     icon = config['icon'].get(window_class, '')
@@ -109,8 +111,12 @@ def make_icon(app):
 
 
 def make_title(app, nested=False):
-    window_class = app.window_class if app.window_class else ''
-    window_title = app.window_title if app.window_title else ''
+    window_class = app.window_class if app.window_class \
+        else app.window_instance if app.window_instance \
+        else ''
+    window_title = app.window_title if app.window_title \
+        else app.name if app.name \
+        else ''
 
     title = ''
     title_type = 1 if nested else config['title'].getint('title', 2)
