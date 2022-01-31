@@ -55,6 +55,14 @@ font-1 = siji:pixelsize=16;1
 font-2 = NotoSans Nerd Font:size=16;4
 ```
 
+You can also customize scroll behavior with `scroll` variable
+
+- `scroll`: integer value, 0/1/2
+  - 0: disable scroll in titlebar
+  - 1: wrap around when reaching the first/last window
+  - 2: stop at the first/last window
+
+
 Variables under `icon` section expect keys to be the **lower case** of window class. If it contains some characters that [`configparser`](https://docs.python.org/3/library/configparser.html) doesn't support, you should replace it manually by modifying `regex` variable in `make_icon` method. You can use following script to check window class:
 
 ```python
