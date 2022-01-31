@@ -22,7 +22,7 @@ This script currently only supports tabbed layout. It couldn't ensure the behavi
 
 Follow under steps to use it with your polybar
 
-1. Make sure you install `i3ipc` with pip or any other tools
+1. Make sure you install [`i3ipc`](https://pypi.org/project/i3ipc/) with pip or any other tools
 2. Clone this repo to somewhere, for example to `~/.config/polybar/scripts`
 3. **Make all scripts executable** with `chmod +x ~/.config/polybar/scripts/polybar-i3-windows`
 4. Change any setting you wish in `config.ini`
