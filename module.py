@@ -136,9 +136,11 @@ def make_title(app, nested=False):
 
 
 def make_command(app):
+    scroll_type = config['general'].getint('scroll', 2)
+
     left_command = '%s %s' % (COMMAND_PATH, app.id)
-    scroll_up_command = '%s %s' % (SCROLL_COMMAND_PATH, 1)
-    scroll_down_command = '%s %s' % (SCROLL_COMMAND_PATH, 2)
+    scroll_up_command = '%s %s %s' % (SCROLL_COMMAND_PATH, 1, scroll_type)
+    scroll_down_command = '%s %s %s' % (SCROLL_COMMAND_PATH, 2, scroll_type)
 
     command = {
         'left': left_command,
