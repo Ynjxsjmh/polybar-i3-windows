@@ -47,6 +47,8 @@ Configuration file should be placed at the same level of `module.py`and its name
 
 You are highly recommended to edit colors under `color` section to suit your polybar theme.
 
+### general section
+
 You need to define a UTF8 support font in polybar setting to display all characters in title bar. This script uses `font-2` for icons in the default setting. You probably want it to have higher size than your regular font. Example:
 
 ```ini
@@ -62,6 +64,7 @@ You can also customize scroll behavior with `scroll` variable
   - 1: wrap around when reaching the first/last window
   - 2: stop at the first/last window
 
+### icon section
 
 Variables under `icon` section expect keys to be the **lower case** of window class. If it contains some characters that [`configparser`](https://docs.python.org/3/library/configparser.html) doesn't support, you should replace it manually by modifying `regex` variable in `make_icon` method. You can use following script to check window class:
 
@@ -74,6 +77,8 @@ tree = i3.get_tree()
 for window in tree.leaves():
     print(window.window_class)
 ```
+
+### title section
 
 Variables under `title` section expect values 
 
