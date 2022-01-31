@@ -12,8 +12,7 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 - [x] Scroll through window with mouse wheel
 - [x] Highlight urgent window
 - [x] Showing split info in title for horizontal and vertical layout
-- [x] Highly customizable styles for window title
-- [x] Show Window number before window title
+- [x] Highly customizable styles for window title, such as icon, color, underline, window number.
 
 Due to lack of mouse hover support by [lemonbar tags](https://github.com/LemonBoy/bar#formatting), there is no mouse hover action.
 
