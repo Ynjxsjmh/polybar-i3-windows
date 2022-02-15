@@ -189,9 +189,9 @@ def paint_window_icon(app, title):
     elif ~isIcon and ~isTitle:
         title = icon + title
 
-    fcolor = config['color'].get('focused-window-front-color', '#ffffff') if app.focused \
-        else config['color'].get('urgent-window-front-color',  '#e84f4f') if app.urgent  \
-        else config['color'].get('window-front-color', '#404040')
+    fcolor = config['color'].get('focused-window-foreground-color', '#ffffff') if app.focused \
+        else config['color'].get('urgent-window-foreground-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-foreground-color', '#404040')
     title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
     bcolor = config['color'].get('focused-window-background-color', '#000000') if app.focused \
@@ -219,9 +219,9 @@ def paint_window_num(app, title):
     if isUnderline:
         num = Template('%{+u}%{U$color}$num%{-u}').substitute(color=ucolor, num=num)
 
-    fcolor = config['color'].get('focused-window-number-front-color', '#ffffff') if app.focused \
-        else config['color'].get('urgent-window-number-front-color',  '#e84f4f') if app.urgent  \
-        else config['color'].get('window-number-front-color', '#404040')
+    fcolor = config['color'].get('focused-window-number-foreground-color', '#ffffff') if app.focused \
+        else config['color'].get('urgent-window-number-foreground-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-number-foreground-color', '#404040')
     num = Template('%{F$color}$num%{F-}').substitute(color=fcolor, num=num)
 
     bcolor = config['color'].get('focused-window-number-background-color', '#000000') if app.focused \
