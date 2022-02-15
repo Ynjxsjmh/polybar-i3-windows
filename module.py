@@ -194,9 +194,9 @@ def paint_window_icon(app, title):
         else config['color'].get('window-front-color', '#404040')
     title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
-    bcolor = config['color'].get('focused-window-background-color', '#00000') if app.focused \
-        else config['color'].get('urgent-window-background-color',  '#00000') if app.urgent  \
-        else config['color'].get('window-background-color', '#00000')
+    bcolor = config['color'].get('focused-window-background-color', '#000000') if app.focused \
+        else config['color'].get('urgent-window-background-color',  '#000000') if app.urgent  \
+        else config['color'].get('window-background-color', '#000000')
     title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
     return title
@@ -224,9 +224,9 @@ def paint_window_num(app, title):
         else config['color'].get('window-number-front-color', '#404040')
     num = Template('%{F$color}$num%{F-}').substitute(color=fcolor, num=num)
 
-    bcolor = config['color'].get('focused-window-number-background-color', '#00000') if app.focused \
-        else config['color'].get('urgent-window-number-background-color',  '#00000') if app.urgent  \
-        else config['color'].get('window-number-background-color', '#00000')
+    bcolor = config['color'].get('focused-window-number-background-color', '#000000') if app.focused \
+        else config['color'].get('urgent-window-number-background-color',  '#000000') if app.urgent  \
+        else config['color'].get('window-number-background-color', '#000000')
     num = Template('%{B$color}$num%{B-}').substitute(color=bcolor, num=num)
 
     return num + title
