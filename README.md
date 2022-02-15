@@ -45,7 +45,7 @@ line-size = 2
 
 Configuration file should be placed at the same level of `module.py`and its name should be `config.ini`.
 
-You are highly recommended to edit colors under `color` section to suit your polybar theme.
+You are highly recommended to edit colors under `color` section to suit your polybar theme. You can use transparency in RGBA to let the color fallback to your polybar color like `window-background-color = #00000000`.
 
 ### general section
 
