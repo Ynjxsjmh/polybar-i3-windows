@@ -232,6 +232,32 @@ def paint_window_num(app, title):
     return num + title
 
 
+def paint_window_hint(app, title):
+    isNum = config['title'].getint('number', 0)
+
+    if isNum:
+        return title
+
+    apps = []
+    get_leaf_nodes(app.workspace(), apps)
+    num = apps.index(app) + 1
+
+    hints = get_hint_strings(len(apps))
+    hint = hints[num - 1]
+
+    fcolor = config['color'].get('focused-window-hint-foreground-color', '#ffffff') if app.focused \
+        else config['color'].get('urgent-window-hint-foreground-color',  '#e84f4f') if app.urgent  \
+        else config['color'].get('window-hint-foreground-color', '#268bd2')
+    hint = Template('%{F$color}$hint%{F-}').substitute(color=fcolor, hint=hint)
+
+    bcolor = config['color'].get('focused-window-hint-background-color', '#00000000') if app.focused \
+        else config['color'].get('urgent-window-hint-background-color',  '#00000000') if app.urgent  \
+        else config['color'].get('window-hint-background-color', '#00000000')
+    hint = Template('%{B$color}$hint%{B-}').substitute(color=bcolor, hint=hint)
+
+    return hint + title
+
+
 def get_leaf_nodes(node, leafs):
     if len(node.nodes) == 0:
         leafs.append(node)
