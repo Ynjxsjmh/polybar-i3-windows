@@ -240,6 +240,27 @@ def get_leaf_nodes(node, leafs):
         get_leaf_nodes(n, leafs)
 
 
+def get_hint_strings(link_count):
+    '''
+    Returns a list of hint strings which will uniquely identify
+    the given number of links. The hint strings may be of different lengths.
+    from https://github.com/philc/vimium/blob/master/content_scripts/link_hints.js
+    '''
+    hint_chars = config['title'].get('hints', 'sadfjklewcmpgh')
+    hints = [""];
+    offset = 0
+
+    while (((len(hints) - offset) < link_count) or (len(hints) == 1)):
+      hint = hints[offset]
+      offset += 1
+      for ch in hint_chars:
+          hints.append(ch + hint)
+
+    hints = hints[offset:offset+link_count]
+
+    return sorted(hints)
+
+
 def make_con_title(node):
     if len(node.nodes):
         title = ' '.join(make_con_title(n) for n in node.nodes)
