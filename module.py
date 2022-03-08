@@ -83,7 +83,7 @@ def format_win(app, nested=False):
     title = paint_window_icon(app, title)
     title = paint_window_num(app, title)
 
-    t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A-}%{A-}%{A-}')
+    t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A}%{A}%{A}')
     entry = t.substitute(left_command=command['left'],
                          scroll_up_command=command['scroll_up'],
                          scroll_down_command=command['scroll_down'],
