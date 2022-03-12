@@ -56,7 +56,11 @@ def render_apps(i3):
     else:
         entries = [ format_entry(node) for node in workspace.nodes ]
 
-    titlebar = "%{O"f"{config['title'].getint('interval', 12)}""}".join(entries)
+    interval = "%{O"f"{config['title'].getint('interval', 12)}""}"
+    titlebar = interval.join(entries)
+
+    if not titlebar:
+        titlebar = interval
 
     print(titlebar, flush=True)
 
