@@ -131,10 +131,13 @@ def make_title(app, nested=False):
         title = window_title
 
     window_num = len(app.workspace().leaves())
-    window_len = config['general'].getint('length', 100) // window_num
+    # consider space between windows
+    window_len = config['general'].getint('length', 100) // window_num - 1
 
-    if len(title) > window_len:
-        title = title[:window_len - 3] + '...'
+    if len(title) > window_len and window_len > 3:
+        title = title[:window_len - 2] + ''
+    elif window_len <= 2:
+        title = title[:1] + '•'
 
     return title
 

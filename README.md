@@ -49,6 +49,8 @@ You are highly recommended to edit colors under `color` section to suit your pol
 
 ### general section
 
+You need to determine the maximum characters this module can contains with `length` variable so that it won't occupies the space of `modules-right`. You can get this by manually fill the content by repeating characters among `a-zA-Z`.
+
 You need to define a UTF8 support font in polybar setting to display all characters in title bar. This script uses `font-2` for icons in the default setting. You probably want it to have higher size than your regular font. Example:
 
 ```ini
