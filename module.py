@@ -134,9 +134,13 @@ def make_title(app, nested=False):
     # consider space between windows
     window_len = config['general'].getint('length', 100) // window_num - 1
 
-    if len(title) > window_len and window_len > 3:
-        title = title[:window_len - 2] + ''
-    elif window_len <= 2:
+    # 47 letters equals to 33 
+    # we treat 1  as 2 letters for more flexible
+    # as we have symbols like H, V, [, ]
+    if window_len >= 3:
+        if len(title) > window_len:
+            title = title[:window_len - 2] + ''
+    else:
         title = title[:1] + '•'
 
     return title
