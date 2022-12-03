@@ -309,7 +309,7 @@ def get_leaf_nodes(node, leafs):
         get_leaf_nodes(n, leafs)
 
 
-def get_hint_strings(link_count):
+def get_hint_strings(win_count):
     '''
     Returns a list of hint strings which will uniquely identify
     the given number of links. The hint strings may be of different lengths.
@@ -319,13 +319,13 @@ def get_hint_strings(link_count):
     hints = [""];
     offset = 0
 
-    while (((len(hints) - offset) < link_count) or (len(hints) == 1)):
+    while (((len(hints) - offset) < win_count) or (len(hints) == 1)):
       hint = hints[offset]
       offset += 1
       for ch in hint_chars:
           hints.append(ch + hint)
 
-    hints = hints[offset:offset+link_count]
+    hints = hints[offset:offset+win_count]
 
     return sorted(hints)
 
