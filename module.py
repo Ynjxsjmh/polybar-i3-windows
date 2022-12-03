@@ -81,6 +81,22 @@ def format_con(con):
 
 
 def format_win(app, nested=False):
+    '''Format the title of a window
+
+    Parameters
+    ----------
+    app: i3ipc.con.Con
+        A window object
+    nested: bool, optional
+        If the window is in a container. (default is False)
+        If so, the window class is shown to follow i3 behavior.
+
+    Returns
+    -------
+    str
+        A window title formatted with icon, mouse command etc.
+    '''
+
     title   = make_title(app, nested=nested)
     command = make_command(app)
 
