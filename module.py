@@ -113,7 +113,9 @@ def format_win(app, nested=False):
 
 
 def make_icon(app):
-    # clear unsupported character in key
+    # The icon is defined in the config file by the window class.
+    # We need to clear unsupported character in window class
+    # because window class should satisfy the key syntax of INI style.
     regex = "[\. ]"
     window_class = app.window_class if app.window_class \
         else app.window_instance if app.window_instance \
