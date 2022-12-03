@@ -286,6 +286,20 @@ def paint_window_hint(app, title):
 
 
 def get_leaf_nodes(node, leafs):
+    '''Get window objects under a container
+
+    Parameters
+    ----------
+    node: i3ipc.con.Con
+        A container or workspace that contains many sub-containers or windows.
+    leafs: list
+        All windows in the target container.
+
+    Returns
+    -------
+        The function edit leafs variable in-place.
+    '''
+
     if len(node.nodes) == 0:
         leafs.append(node)
 
