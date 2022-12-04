@@ -224,8 +224,7 @@ def paint_window_icon(app, title):
 
 
 def paint_window_num(app, title):
-    apps = []
-    get_leaf_nodes(app.workspace(), apps)
+    apps = get_leaf_nodes(app.workspace())
     num = apps.index(app) + 1
 
     isNum = config['title'].getint('number', 0)
@@ -260,8 +259,7 @@ def paint_window_hint(app, title):
     if isNum:
         return title
 
-    apps = []
-    get_leaf_nodes(app.workspace(), apps)
+    apps = get_leaf_nodes(app.workspace())
     num = apps.index(app) + 1
 
     hints = get_hint_strings(len(apps))
@@ -281,26 +279,29 @@ def paint_window_hint(app, title):
     return hint + title
 
 
-def get_leaf_nodes(node, leafs):
+def get_leaf_nodes(node):
     '''Get window objects under a container
 
     Parameters
     ----------
     node: i3ipc.con.Con
         A container or workspace that contains many sub-containers or windows.
-    leafs: list
-        All windows in the target container.
 
     Returns
     -------
-        The function edit leafs variable in-place.
+    list
+        All windows in the target container.
     '''
 
+    leaves = []
+
     if len(node.nodes) == 0:
-        leafs.append(node)
+        return [ node ]
 
     for n in node.nodes:
-        get_leaf_nodes(n, leafs)
+        leaves += get_leaf_nodes(n)
+
+    return leaves
 
 
 def get_hint_strings(win_count):
