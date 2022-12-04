@@ -351,6 +351,8 @@ if __name__ == '__main__':
     i3.on('window::focus', on_change)
     i3.on('window', on_change)
 
+    render_apps(i3)
+
     BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
     pri_keystroke_set = set()
 
@@ -373,13 +375,11 @@ if __name__ == '__main__':
                 # Generate hint
                 render_apps(i3, hint=True)
                 hints = hint2win.keys()
-                print(hint2win)
 
                 # Release boss key
                 # Some boss key like ctrl may be hold longer
                 with keyboard.Events() as events:
                     for event in events:
-                        print(event)
                         # 在 release 期间，可能没有释放完全部 boss key，
                         # 而是按其他的键，此时释放的键会出现不在 boss key
                         # 即记录之前按的键（pri_keystroke_set）的中
@@ -394,7 +394,6 @@ if __name__ == '__main__':
                 sec_keystroke_queue = []
                 with keyboard.Events() as sec_events:
                     for sec_event in sec_events:
-                        print(type(sec_event.key))
                         if ''.join(sec_keystroke_queue) in hints:
                             break
                         elif sec_event.key == keyboard.Key.esc:
