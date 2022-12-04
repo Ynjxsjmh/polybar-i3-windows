@@ -408,9 +408,9 @@ if __name__ == '__main__':
                             # ignore those control keys
                             pass
 
+                render_apps(i3)
                 if not is_quit:
                     # Jump to window
-                    render_apps(i3)
                     win = hint2win[''.join(sec_keystroke_queue)]
                     win.command('focus')
             else:
