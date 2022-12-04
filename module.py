@@ -334,19 +334,11 @@ class TitleBar:
         return sorted(hints)
 
 
-def on_change(i3, e):
-    render_apps(i3)
-
-
 if __name__ == '__main__':
 
     i3 = i3ipc.Connection()
-
-    i3.on('workspace::focus', on_change)
-    i3.on('window::focus', on_change)
-    i3.on('window', on_change)
-
     title_bar = TitleBar()
+
     title_bar.print_title_bar(i3)
 
     BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
