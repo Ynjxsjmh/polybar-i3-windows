@@ -4,8 +4,10 @@ import os
 import re
 import asyncio
 import i3ipc
+import pynput
 import configparser
 
+from pynput import keyboard
 from string import Template
 
 
@@ -21,28 +23,14 @@ for section in default_sections:
     if not config.has_section(section):
         config.add_section(section)
 
-
-def main():
-    i3 = i3ipc.Connection()
-
-    i3.on('workspace::focus', on_change)
-    i3.on('window::focus', on_change)
-    i3.on('window', on_change)
-
-    loop = asyncio.get_event_loop()
-
-    loop.run_in_executor(None, i3.main)
-
-    render_apps(i3)
-
-    loop.run_forever()
+hint2win = dict()
 
 
 def on_change(i3, e):
     render_apps(i3)
 
 
-def render_apps(i3):
+def render_apps(i3, hint=False):
     tree = i3.get_tree()
     # Get current workspace
     focused = tree.find_focused()
@@ -52,9 +40,9 @@ def render_apps(i3):
     if len(workspace.nodes) == 1 and workspace.nodes[0].layout == 'tabbed':
         # Ensure first level nodes only contain the tabbed container
         tabbed_con = workspace.nodes[0]
-        entries = [ format_entry(node) for node in tabbed_con.nodes ]
+        entries = [ format_entry(node, hint=hint) for node in tabbed_con.nodes ]
     else:
-        entries = [ format_entry(node) for node in workspace.nodes ]
+        entries = [ format_entry(node, hint=hint) for node in workspace.nodes ]
 
     interval = "%{O"f"{config['title'].getint('interval', 12)}""}"
     titlebar = interval.join(entries)
@@ -63,24 +51,25 @@ def render_apps(i3):
         titlebar = interval
 
     print(titlebar, flush=True)
+    return titlebar
 
 
-def format_entry(node):
+def format_entry(node, hint=False):
     if len(node.nodes):
-        entry = format_con(node)
+        entry = format_con(node, hint=hint)
     else:
-        entry = format_win(node)
+        entry = format_win(node, hint=hint)
 
     return entry
 
 
-def format_con(con):
-    title = make_con_title(con)
+def format_con(con, hint=False):
+    title = make_con_title(con, hint=False)
 
     return title
 
 
-def format_win(app, nested=False):
+def format_win(app, nested=False, hint=False):
     '''Format the title of a window
 
     Parameters
@@ -102,6 +91,9 @@ def format_win(app, nested=False):
 
     title = paint_window_icon(app, title)
     title = paint_window_num(app, title)
+
+    if hint:
+        title = paint_window_hint(app, title)
 
     t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A}%{A}%{A}')
     entry = t.substitute(left_command=command['left'],
@@ -262,6 +254,7 @@ def paint_window_num(app, title):
 
 
 def paint_window_hint(app, title):
+    global hint2win
     isNum = config['title'].getint('number', 0)
 
     if isNum:
@@ -272,6 +265,7 @@ def paint_window_hint(app, title):
     num = apps.index(app) + 1
 
     hints = get_hint_strings(len(apps))
+    hint2win = dict(zip(hints, apps))
     hint = hints[num - 1]
 
     fcolor = config['color'].get('focused-window-hint-foreground-color', '#ffffff') if app.focused \
@@ -330,7 +324,7 @@ def get_hint_strings(win_count):
     return sorted(hints)
 
 
-def make_con_title(node):
+def make_con_title(node, hint=False):
     if len(node.nodes):
         title = ' '.join(make_con_title(n) for n in node.nodes)
         if node.layout == 'splith':
@@ -345,7 +339,79 @@ def make_con_title(node):
             title = 'not supported'
         return title
     else:
-        return format_win(node, nested=True)
+        return format_win(node, nested=True, hint=hint)
 
 
-main()
+if __name__ == '__main__':
+
+    i3 = i3ipc.Connection()
+
+    i3.on('workspace::focus', on_change)
+    i3.on('window::focus', on_change)
+    i3.on('window', on_change)
+
+    BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
+    pri_keystroke_set = set()
+
+    with keyboard.Events() as pri_events:
+        for pri_event in pri_events:
+
+            if isinstance(pri_event, pynput.keyboard.Events.Press):
+                pri_keystroke_set.add(pri_event.key)
+
+            if len(pri_keystroke_set) and isinstance(pri_event, pynput.keyboard.Events.Release):
+                '''
+                pri_keystroke_set could be empty in two cases:
+                1. when entering the event, no key is pressed
+                2. pri key has hit the BOSS_KEY, so it is released in inner events
+                In both case, we don't need remove keys from it
+                '''
+                pri_keystroke_set.remove(pri_event.key)
+
+            if pri_keystroke_set == BOSS_KEY:
+                # Generate hint
+                render_apps(i3, hint=True)
+                hints = hint2win.keys()
+                print(hint2win)
+
+                # Release boss key
+                # Some boss key like ctrl may be hold longer
+                with keyboard.Events() as events:
+                    for event in events:
+                        print(event)
+                        # 在 release 期间，可能没有释放完全部 boss key，
+                        # 而是按其他的键，此时释放的键会出现不在 boss key
+                        # 即记录之前按的键（pri_keystroke_set）的中
+                        if event.key in pri_keystroke_set and isinstance(event, pynput.keyboard.Events.Release):
+                            pri_keystroke_set.remove(event.key)
+
+                        if len(pri_keystroke_set) == 0:
+                            break
+
+                # Type hint
+                is_quit = 0
+                sec_keystroke_queue = []
+                with keyboard.Events() as sec_events:
+                    for sec_event in sec_events:
+                        print(type(sec_event.key))
+                        if ''.join(sec_keystroke_queue) in hints:
+                            break
+                        elif sec_event.key == keyboard.Key.esc:
+                            is_quit = 1
+                            break
+                        elif sec_event.key == keyboard.Key.backspace:
+                            sec_keystroke_queue = sec_keystroke_queue[:-1]
+                        elif isinstance(sec_event.key, pynput.keyboard._xorg.KeyCode):
+                            sec_keystroke_queue.append(sec_event.key.char)
+                        else:
+                            # If sec_event.key is pynput.keyboard._xorg.Key,
+                            # ignore those control keys
+                            pass
+
+                if not is_quit:
+                    # Jump to window
+                    render_apps(i3)
+                    win = hint2win[''.join(sec_keystroke_queue)]
+                    win.command('focus')
+            else:
+                render_apps(i3)
