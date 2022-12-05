@@ -51,7 +51,7 @@ You are highly recommended to edit colors under `color` section to suit your pol
 
 You need to determine the maximum characters this module can contains with `length` variable so that it won't occupies the space of `modules-right`. You can get this by manually fill the content by repeating characters among `a-zA-Z`.
 
-You need to define a UTF8 support font in polybar setting to display all characters in title bar. This script uses `font-2` for icons in the default setting. You probably want it to have higher size than your regular font. Example:
+You need to define a UTF8 support font in polybar setting to display all characters in title bar. This script uses `font-2` for icons in the default setting. You probably want it to have larger size than your regular font. Example:
 
 ```ini
 font-0 = NotoSans Nerd Font:size=10;2
@@ -68,7 +68,7 @@ You can also customize scroll behavior with `scroll` variable
 
 ### icon section
 
-Variables under `icon` section expect keys to be the **lower case** of window class. If it contains some characters that [`configparser`](https://docs.python.org/3/library/configparser.html) doesn't support, you should replace it manually by modifying `regex` variable in `make_icon` method. You can use following script to check window class:
+Variables under `icon` section expect keys to be the **lower case** of window class (for example if the window class is `Firefox`, the variable should be `firefox`). If it contains some characters that [`configparser`](https://docs.python.org/3/library/configparser.html) doesn't support, you should replace it manually by modifying `regex` variable in `make_icon` method. You can use following script to check window class:
 
 ```python
 import i3ipc
