@@ -65,12 +65,12 @@ class TitleBar:
 
         return title
 
-    def format_win(self, app, nested=False):
+    def format_win(self, win, nested=False):
         '''Format the title of a window
 
         Parameters
         ----------
-        app: i3ipc.con.Con
+        win: i3ipc.con.Con
             A window object
         nested: bool, optional
             If the window is in a container. (default is False)
@@ -82,14 +82,14 @@ class TitleBar:
             A window title formatted with icon, mouse command etc.
         '''
 
-        title   = self.make_title(app, nested=nested)
-        command = self.make_command(app)
+        title   = self.make_title(win, nested=nested)
+        command = self.make_command(win)
 
-        title = self.paint_window_icon(app, title)
-        title = self.paint_window_num(app, title)
+        title = self.paint_window_icon(win, title)
+        title = self.paint_window_num(win, title)
 
         if self.hint:
-            title = self.paint_window_hint(app, title)
+            title = self.paint_window_hint(win, title)
 
         t = Template('%{A1:$left_command:}%{A4:$scroll_up_command:}%{A5:$scroll_down_command:}$title%{A}%{A}%{A}')
         entry = t.substitute(left_command=command['left'],
@@ -99,13 +99,13 @@ class TitleBar:
 
         return entry
 
-    def make_icon(self, app):
+    def make_icon(self, win):
         # The icon is defined in the config file by the window class.
         # We need to clear unsupported character in window class
         # because window class should satisfy the key syntax of INI style.
         regex = "[\. ]"
-        window_class = app.window_class if app.window_class \
-            else app.window_instance if app.window_instance \
+        window_class = win.window_class if win.window_class \
+            else win.window_instance if win.window_instance \
             else ''
         window_class = re.sub(regex, '', window_class)
         window_class = window_class.lower()
@@ -135,12 +135,12 @@ class TitleBar:
         else:
             return self.format_win(node, nested=True)
 
-    def make_title(self, app, nested=False):
-        window_class = app.window_class if app.window_class \
-            else app.window_instance if app.window_instance \
+    def make_title(self, win, nested=False):
+        window_class = win.window_class if win.window_class \
+            else win.window_instance if win.window_instance \
             else ''
-        window_title = app.window_title if app.window_title \
-            else app.name if app.name \
+        window_title = win.window_title if win.window_title \
+            else win.name if win.name \
             else ''
 
         title = ''
@@ -151,7 +151,7 @@ class TitleBar:
         else:
             title = window_title
 
-        window_num = len(app.workspace().leaves())
+        window_num = len(win.workspace().leaves())
         # consider space between windows
         window_len = self.config['general'].getint('length') // window_num - 1
 
@@ -166,10 +166,10 @@ class TitleBar:
 
         return title
 
-    def make_command(self, app):
+    def make_command(self, win):
         scroll_type = self.config['general']['scroll']
 
-        left_command = '%s %s' % (COMMAND_PATH, app.id)
+        left_command = '%s %s' % (COMMAND_PATH, win.id)
         scroll_up_command = '%s %s %s' % (SCROLL_COMMAND_PATH, 1, scroll_type)
         scroll_down_command = '%s %s %s' % (SCROLL_COMMAND_PATH, 2, scroll_type)
 
@@ -181,15 +181,15 @@ class TitleBar:
 
         return command
 
-    def paint_window_icon(self, app, title):
-        icon = self.make_icon(app)
+    def paint_window_icon(self, win, title):
+        icon = self.make_icon(win)
 
         isIcon    = self.config['title'].getboolean('icon')
         isTitle   = self.config['title'].getint('title') > 0
         underline = self.config['title'].getint('underline')
 
-        ucolor = self.config['color']['focused-window-underline-color'] if app.focused \
-            else self.config['color']['urgent-window-underline-color'] if app.urgent  \
+        ucolor = self.config['color']['focused-window-underline-color'] if win.focused \
+            else self.config['color']['urgent-window-underline-color'] if win.urgent  \
             else self.config['color']['window-underline-color']
         ucolor_t = Template('%{+u}%{U$color}$title%{-u}')
 
@@ -219,21 +219,21 @@ class TitleBar:
         elif ~isIcon and ~isTitle:
             title = icon + title
 
-        fcolor = self.config['color']['focused-window-foreground-color'] if app.focused \
-            else self.config['color']['urgent-window-foreground-color'] if app.urgent  \
+        fcolor = self.config['color']['focused-window-foreground-color'] if win.focused \
+            else self.config['color']['urgent-window-foreground-color'] if win.urgent  \
             else self.config['color']['window-foreground-color']
         title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
-        bcolor = self.config['color']['focused-window-background-color'] if app.focused \
-            else self.config['color']['urgent-window-background-color'] if app.urgent  \
+        bcolor = self.config['color']['focused-window-background-color'] if win.focused \
+            else self.config['color']['urgent-window-background-color'] if win.urgent  \
             else self.config['color']['window-background-color']
         title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
         return title
 
-    def paint_window_num(self, app, title):
-        apps = self.get_leaf_nodes(app.workspace())
-        num = apps.index(app) + 1
+    def paint_window_num(self, win, title):
+        wins = self.get_leaf_nodes(win.workspace())
+        num = wins.index(win) + 1
 
         isNum = self.config['title'].getint('number')
         isUnderline = self.config['title'].getboolean('underline-number')
@@ -241,44 +241,44 @@ class TitleBar:
         if not isNum:
             return title
 
-        ucolor = self.config['color']['focused-window-number-underline-color'] if app.focused \
-            else self.config['color']['urgent-window-number-underline-color'] if app.urgent  \
+        ucolor = self.config['color']['focused-window-number-underline-color'] if win.focused \
+            else self.config['color']['urgent-window-number-underline-color'] if win.urgent  \
             else self.config['color']['window-number-underline-color']
         if isUnderline:
             num = Template('%{+u}%{U$color}$num%{-u}').substitute(color=ucolor, num=num)
 
-        fcolor = self.config['color']['focused-window-number-foreground-color'] if app.focused \
-            else self.config['color']['urgent-window-number-foreground-color'] if app.urgent  \
+        fcolor = self.config['color']['focused-window-number-foreground-color'] if win.focused \
+            else self.config['color']['urgent-window-number-foreground-color'] if win.urgent  \
             else self.config['color']['window-number-foreground-color']
         num = Template('%{F$color}$num%{F-}').substitute(color=fcolor, num=num)
 
-        bcolor = self.config['color']['focused-window-number-background-color'] if app.focused \
-            else self.config['color']['urgent-window-number-background-color'] if app.urgent  \
+        bcolor = self.config['color']['focused-window-number-background-color'] if win.focused \
+            else self.config['color']['urgent-window-number-background-color'] if win.urgent  \
             else self.config['color']['window-number-background-color']
         num = Template('%{B$color}$num%{B-}').substitute(color=bcolor, num=num)
 
         return num + title
 
-    def paint_window_hint(self, app, title):
+    def paint_window_hint(self, win, title):
         isNum = self.config['title'].getint('number')
 
         if isNum:
             return title
 
-        apps = self.get_leaf_nodes(app.workspace())
-        num = apps.index(app) + 1
+        wins = self.get_leaf_nodes(win.workspace())
+        num = wins.index(win) + 1
 
-        hints = self.get_hint_strings(len(apps))
-        self.hint2win = dict(zip(hints, apps))
+        hints = self.get_hint_strings(len(wins))
+        self.hint2win = dict(zip(hints, wins))
         hint = hints[num - 1]
 
-        fcolor = self.config['color']['focused-window-hint-foreground-color'] if app.focused \
-            else self.config['color']['urgent-window-hint-foreground-color'] if app.urgent  \
+        fcolor = self.config['color']['focused-window-hint-foreground-color'] if win.focused \
+            else self.config['color']['urgent-window-hint-foreground-color'] if win.urgent  \
             else self.config['color']['window-hint-foreground-color']
         hint = Template('%{F$color}$hint%{F-}').substitute(color=fcolor, hint=hint)
 
-        bcolor = self.config['color']['focused-window-hint-background-color'] if app.focused \
-            else self.config['color']['urgent-window-hint-background-color'] if app.urgent  \
+        bcolor = self.config['color']['focused-window-hint-background-color'] if win.focused \
+            else self.config['color']['urgent-window-hint-background-color'] if win.urgent  \
             else self.config['color']['window-hint-background-color']
         hint = Template('%{B$color}$hint%{B-}').substitute(color=bcolor, hint=hint)
 
