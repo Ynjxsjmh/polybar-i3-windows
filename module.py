@@ -15,20 +15,15 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 COMMAND_PATH = os.path.join(SCRIPT_DIR, 'command.py')
 SCROLL_COMMAND_PATH = os.path.join(SCRIPT_DIR, 'scroll.py')
 
-config = configparser.ConfigParser()
-config.read(os.path.join(SCRIPT_DIR, 'config.ini'))
-
-default_sections = ['general', 'icon', 'color', 'title']
-for section in default_sections:
-    if not config.has_section(section):
-        config.add_section(section)
-
-
 
 class TitleBar:
-    def __init__(self):
+    def __init__(self, config_path='config.ini'):
         self.hint = False
         self.hint2win = dict()
+
+        self.config = configparser.ConfigParser()
+        self.config.read(os.path.join(SCRIPT_DIR, 'default.ini'))
+        self.config.read(os.path.join(SCRIPT_DIR, config_path))
 
     def get_title_bar(self, i3):
         tree = i3.get_tree()
@@ -44,7 +39,7 @@ class TitleBar:
         else:
             entries = [ self.format_entry(node) for node in workspace.nodes ]
 
-        interval = "%{O"f"{config['title'].getint('interval', 12)}""}"
+        interval = "%{O"f"{self.config['title']['interval']}""}"
         title_bar = interval.join(entries)
 
         if not title_bar:
@@ -115,8 +110,8 @@ class TitleBar:
         window_class = re.sub(regex, '', window_class)
         window_class = window_class.lower()
 
-        icon = config['icon'].get(window_class, '')
-        font = config['general'].getint('icon-font', 0)
+        icon = self.config['icon'].get(window_class, '')
+        font = self.config['general'].getint('icon-font')
 
         if font:
             return Template('%{T$font}$icon%{T-}').substitute(font=font, icon=icon)
@@ -149,7 +144,7 @@ class TitleBar:
             else ''
 
         title = ''
-        title_type = 1 if nested else config['title'].getint('title', 2)
+        title_type = 1 if nested else self.config['title'].getint('title')
 
         if title_type == 1:
             title = window_class
@@ -158,7 +153,7 @@ class TitleBar:
 
         window_num = len(app.workspace().leaves())
         # consider space between windows
-        window_len = config['general'].getint('length', 100) // window_num - 1
+        window_len = self.config['general'].getint('length') // window_num - 1
 
         # 47 letters equals to 33 
         # we treat 1  as 2 letters for more flexible
@@ -172,7 +167,7 @@ class TitleBar:
         return title
 
     def make_command(self, app):
-        scroll_type = config['general'].getint('scroll', 2)
+        scroll_type = self.config['general']['scroll']
 
         left_command = '%s %s' % (COMMAND_PATH, app.id)
         scroll_up_command = '%s %s %s' % (SCROLL_COMMAND_PATH, 1, scroll_type)
@@ -189,13 +184,13 @@ class TitleBar:
     def paint_window_icon(self, app, title):
         icon = self.make_icon(app)
 
-        isIcon = config['title'].getboolean('icon', False)
-        isTitle = config['title'].getint('title', 2) > 0
-        underline = config['title'].getint('underline', 0)
+        isIcon    = self.config['title'].getboolean('icon')
+        isTitle   = self.config['title'].getint('title') > 0
+        underline = self.config['title'].getint('underline')
 
-        ucolor = config['color'].get('focused-window-underline-color', '#b4619a') if app.focused \
-            else config['color'].get('urgent-window-underline-color',  '#e84f4f') if app.urgent  \
-            else config['color'].get('window-underline-color', '#404040')
+        ucolor = self.config['color']['focused-window-underline-color'] if app.focused \
+            else self.config['color']['urgent-window-underline-color'] if app.urgent  \
+            else self.config['color']['window-underline-color']
         ucolor_t = Template('%{+u}%{U$color}$title%{-u}')
 
         if isIcon and isTitle and underline == 0:
@@ -224,14 +219,14 @@ class TitleBar:
         elif ~isIcon and ~isTitle:
             title = icon + title
 
-        fcolor = config['color'].get('focused-window-foreground-color', '#ffffff') if app.focused \
-            else config['color'].get('urgent-window-foreground-color',  '#e84f4f') if app.urgent  \
-            else config['color'].get('window-foreground-color', '#404040')
+        fcolor = self.config['color']['focused-window-foreground-color'] if app.focused \
+            else self.config['color']['urgent-window-foreground-color'] if app.urgent  \
+            else self.config['color']['window-foreground-color']
         title = Template('%{F$color}$title%{F-}').substitute(color=fcolor, title=title)
 
-        bcolor = config['color'].get('focused-window-background-color', '#000000') if app.focused \
-            else config['color'].get('urgent-window-background-color',  '#000000') if app.urgent  \
-            else config['color'].get('window-background-color', '#000000')
+        bcolor = self.config['color']['focused-window-background-color'] if app.focused \
+            else self.config['color']['urgent-window-background-color'] if app.urgent  \
+            else self.config['color']['window-background-color']
         title = Template('%{B$color}$title%{B-}').substitute(color=bcolor, title=title)
 
         return title
@@ -240,32 +235,32 @@ class TitleBar:
         apps = self.get_leaf_nodes(app.workspace())
         num = apps.index(app) + 1
 
-        isNum = config['title'].getint('number', 0)
-        isUnderline = config['title'].getboolean('underline-number', False)
+        isNum = self.config['title'].getint('number')
+        isUnderline = self.config['title'].getboolean('underline-number')
 
         if not isNum:
             return title
 
-        ucolor = config['color'].get('focused-window-number-underline-color', '#b4619a') if app.focused \
-            else config['color'].get('urgent-window-number-underline-color',  '#e84f4f') if app.urgent  \
-            else config['color'].get('window-number-underline-color', '#404040')
+        ucolor = self.config['color']['focused-window-number-underline-color'] if app.focused \
+            else self.config['color']['urgent-window-number-underline-color'] if app.urgent  \
+            else self.config['color']['window-number-underline-color']
         if isUnderline:
             num = Template('%{+u}%{U$color}$num%{-u}').substitute(color=ucolor, num=num)
 
-        fcolor = config['color'].get('focused-window-number-foreground-color', '#ffffff') if app.focused \
-            else config['color'].get('urgent-window-number-foreground-color',  '#e84f4f') if app.urgent  \
-            else config['color'].get('window-number-foreground-color', '#404040')
+        fcolor = self.config['color']['focused-window-number-foreground-color'] if app.focused \
+            else self.config['color']['urgent-window-number-foreground-color'] if app.urgent  \
+            else self.config['color']['window-number-foreground-color']
         num = Template('%{F$color}$num%{F-}').substitute(color=fcolor, num=num)
 
-        bcolor = config['color'].get('focused-window-number-background-color', '#000000') if app.focused \
-            else config['color'].get('urgent-window-number-background-color',  '#000000') if app.urgent  \
-            else config['color'].get('window-number-background-color', '#000000')
+        bcolor = self.config['color']['focused-window-number-background-color'] if app.focused \
+            else self.config['color']['urgent-window-number-background-color'] if app.urgent  \
+            else self.config['color']['window-number-background-color']
         num = Template('%{B$color}$num%{B-}').substitute(color=bcolor, num=num)
 
         return num + title
 
     def paint_window_hint(self, app, title):
-        isNum = config['title'].getint('number', 0)
+        isNum = self.config['title'].getint('number')
 
         if isNum:
             return title
@@ -277,14 +272,14 @@ class TitleBar:
         self.hint2win = dict(zip(hints, apps))
         hint = hints[num - 1]
 
-        fcolor = config['color'].get('focused-window-hint-foreground-color', '#ffffff') if app.focused \
-            else config['color'].get('urgent-window-hint-foreground-color',  '#e84f4f') if app.urgent  \
-            else config['color'].get('window-hint-foreground-color', '#268bd2')
+        fcolor = self.config['color']['focused-window-hint-foreground-color'] if app.focused \
+            else self.config['color']['urgent-window-hint-foreground-color'] if app.urgent  \
+            else self.config['color']['window-hint-foreground-color']
         hint = Template('%{F$color}$hint%{F-}').substitute(color=fcolor, hint=hint)
 
-        bcolor = config['color'].get('focused-window-hint-background-color', '#00000000') if app.focused \
-            else config['color'].get('urgent-window-hint-background-color',  '#00000000') if app.urgent  \
-            else config['color'].get('window-hint-background-color', '#00000000')
+        bcolor = self.config['color']['focused-window-hint-background-color'] if app.focused \
+            else self.config['color']['urgent-window-hint-background-color'] if app.urgent  \
+            else self.config['color']['window-hint-background-color']
         hint = Template('%{B$color}$hint%{B-}').substitute(color=bcolor, hint=hint)
 
         return hint + title
@@ -319,7 +314,7 @@ class TitleBar:
         the given number of links. The hint strings may be of different lengths.
         from https://github.com/philc/vimium/blob/master/content_scripts/link_hints.js
         '''
-        hint_chars = config['title'].get('hints', 'sadfjklewcmpgh')
+        hint_chars = self.config['title']['hints']
         hints = [""];
         offset = 0
 
