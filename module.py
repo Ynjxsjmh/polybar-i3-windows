@@ -376,6 +376,7 @@ if __name__ == '__main__':
                 # We need to block them being typed to screen
                 is_quit = 0
                 sec_keystroke_queue = []
+                pynput.keyboard.Listener.suppress = True
                 with keyboard.Events() as sec_events:
                     for sec_event in sec_events:
                         if ''.join(sec_keystroke_queue) in hints:
@@ -397,5 +398,6 @@ if __name__ == '__main__':
                     # Jump to window
                     win = title_bar.hint2win[''.join(sec_keystroke_queue)]
                     win.command('focus')
+                pynput.keyboard.Listener.suppress = False
             else:
                 title_bar.print_title_bar(i3)
