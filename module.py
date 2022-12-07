@@ -9,6 +9,7 @@ import configparser
 
 from pynput import keyboard
 from string import Template
+from threading import Thread
 
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -333,6 +334,14 @@ if __name__ == '__main__':
 
     i3 = i3ipc.Connection()
     title_bar = TitleBar()
+
+    def refresh_title_bar(i3, e):
+        title_bar.print_title_bar(i3)
+    i3.on('window', refresh_title_bar)
+    i3.on('window::focus', refresh_title_bar)
+    i3.on('workspace::focus', refresh_title_bar)
+    thread = Thread(target=i3.main)
+    thread.start()
 
     title_bar.print_title_bar(i3)
 
