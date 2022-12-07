@@ -55,6 +55,9 @@ class TitleBar:
 
     def format_entry(self, node):
         if len(node.nodes):
+            # A container could contains many windows.
+            # If a node has a list of nodes,
+            # then it is a container.
             entry = self.format_con(node)
         else:
             entry = self.format_win(node)
