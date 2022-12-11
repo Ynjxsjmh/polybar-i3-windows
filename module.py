@@ -2,6 +2,7 @@
 
 import os
 import re
+import json
 import asyncio
 import i3ipc
 import pynput
@@ -438,7 +439,8 @@ if __name__ == '__main__':
 
     title_bar.print_title_bar()
 
-    BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
+    BOSS_KEY = {getattr(keyboard.Key, key) if len(key) > 1 else keyboard.KeyCode(char=key)
+                for key in json.loads(title_bar.config.get('general', 'hint-key'))}
     pri_keystroke_set = set()
 
     shift_map = {
