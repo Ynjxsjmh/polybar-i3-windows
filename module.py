@@ -9,6 +9,7 @@ import pynput
 import tkinter
 import configparser
 
+from loguru import logger
 from pynput import keyboard
 from string import Template
 from threading import Thread
@@ -433,6 +434,7 @@ class TitleBar:
 
 
 if __name__ == '__main__':
+    logger.add('out.log')
 
     title_bar = TitleBar()
     title_bar.launch_i3()
@@ -457,6 +459,8 @@ if __name__ == '__main__':
 
             if isinstance(pri_event, pynput.keyboard.Events.Press):
                 pri_keystroke_set.add(pri_event.key)
+                logger.debug(f'Press key {pri_event.key}')
+                logger.debug(pri_keystroke_set)
 
             if len(pri_keystroke_set) and isinstance(pri_event, pynput.keyboard.Events.Release):
                 '''
@@ -470,6 +474,8 @@ if __name__ == '__main__':
                 # The record is {A, a} or {A} after shift released,
                 # due to a is in pressed,
                 # release a from record {A} might cause error
+                logger.debug(pri_keystroke_set)
+                logger.debug(f'Release key {pri_event.key}')
                 if isinstance(pri_event.key, pynput.keyboard._xorg.KeyCode):
                     shift_char = shift_map.get(pri_event.key.char, pri_event.key.char)
                     if pynput.keyboard._xorg.KeyCode(char=shift_char) in pri_keystroke_set:
