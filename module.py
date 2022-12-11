@@ -434,6 +434,7 @@ class TitleBar:
 
 
 if __name__ == '__main__':
+    logger.remove()
     logger.add('out.log')
 
     title_bar = TitleBar()
