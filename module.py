@@ -324,9 +324,12 @@ class TitleBar:
         for workspace in self.get_visible_workspaces():
             wins += workspace.leaves()
         visible_wins = [win for win in wins if self.get_container_visibility(win)]
+        focused_win = self.i3.get_tree().find_focused()
 
         if len(visible_wins) > 1:
             for win in visible_wins:
+                if win.id == focused_win.id:
+                    continue
                 hint = self.win2hint[win.id]
                 label = tkinter.Label(text=hint, font=("", 60))
                 x = win.rect.x + win.rect.width/2 - label.winfo_reqwidth()/2
