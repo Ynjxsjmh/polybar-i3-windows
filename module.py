@@ -19,7 +19,7 @@ SCROLL_COMMAND_PATH = os.path.join(SCRIPT_DIR, 'scroll.py')
 
 
 class TitleBar:
-    def __init__(self, i3, config_path='config.ini'):
+    def __init__(self, config_path='config.ini'):
         self.hint = False
         self.hint2win = dict()
         self.win2hint = dict()
@@ -28,9 +28,20 @@ class TitleBar:
         self.config.read(os.path.join(SCRIPT_DIR, 'default.ini'))
         self.config.read(os.path.join(SCRIPT_DIR, config_path))
 
-        self.i3 = i3
         self.tk = tkinter.Tk()
         self.keystroke_queue = []
+
+        self.i3 = i3ipc.Connection()
+        self.i3.on('window', self._refresh_title_bar)
+        self.i3.on('window::focus', self._refresh_title_bar)
+        self.i3.on('workspace::focus', self._refresh_title_bar)
+
+    def launch_i3(self):
+        t_i3 = Thread(target=self.i3.main)
+        t_i3.start()
+
+    def _refresh_title_bar(self, i3conn, event):
+        self.print_title_bar()
 
     def get_title_bar(self):
         tree = self.i3.get_tree()
@@ -419,16 +430,8 @@ class TitleBar:
 
 if __name__ == '__main__':
 
-    i3 = i3ipc.Connection()
-    title_bar = TitleBar(i3)
-
-    def refresh_title_bar(i3, e):
-        title_bar.print_title_bar(i3)
-    i3.on('window', refresh_title_bar)
-    i3.on('window::focus', refresh_title_bar)
-    i3.on('workspace::focus', refresh_title_bar)
-    thread = Thread(target=i3.main)
-    thread.start()
+    title_bar = TitleBar()
+    title_bar.launch_i3()
 
     title_bar.print_title_bar()
 
