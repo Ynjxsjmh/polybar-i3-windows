@@ -386,7 +386,7 @@ class TitleBar:
         '''
         Returns a list of hint strings which will uniquely identify
         the given number of links. The hint strings may be of different lengths.
-        from https://github.com/philc/vimium/blob/master/content_scripts/link_hints.js
+        from hintStrings func in https://github.com/philc/vimium/blob/master/content_scripts/link_hints.js
         '''
         hint_chars = self.config['title']['hints']
         hints = [""];
@@ -400,7 +400,7 @@ class TitleBar:
 
         hints = hints[offset:offset+win_count]
 
-        return sorted(hints)
+        return list(map(lambda s: s[::-1], sorted(hints)))
 
     def get_visible_workspaces(self):
         visible_workspace_names = [output.current_workspace for output in self.i3.get_outputs()
