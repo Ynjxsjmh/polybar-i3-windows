@@ -78,6 +78,8 @@ tree = i3.get_tree()
 
 for window in tree.leaves():
     print(window.window_class)
+    # To see complete ipc data
+    # print(window.ipc_data)
 ```
 
 ### title section
