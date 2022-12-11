@@ -5,6 +5,7 @@ import re
 import asyncio
 import i3ipc
 import pynput
+import tkinter
 import configparser
 
 from pynput import keyboard
@@ -18,16 +19,21 @@ SCROLL_COMMAND_PATH = os.path.join(SCRIPT_DIR, 'scroll.py')
 
 
 class TitleBar:
-    def __init__(self, config_path='config.ini'):
+    def __init__(self, i3, config_path='config.ini'):
         self.hint = False
         self.hint2win = dict()
+        self.win2hint = dict()
 
         self.config = configparser.ConfigParser()
         self.config.read(os.path.join(SCRIPT_DIR, 'default.ini'))
         self.config.read(os.path.join(SCRIPT_DIR, config_path))
 
-    def get_title_bar(self, i3):
-        tree = i3.get_tree()
+        self.i3 = i3
+        self.tk = tkinter.Tk()
+        self.keystroke_queue = []
+
+    def get_title_bar(self):
+        tree = self.i3.get_tree()
         # Get current workspace
         focused = tree.find_focused()
         workspace = focused.workspace()
@@ -48,9 +54,9 @@ class TitleBar:
 
         return title_bar
 
-    def print_title_bar(self, i3, hint=False):
+    def print_title_bar(self, hint=False):
         self.hint = hint
-        title_bar = self.get_title_bar(i3)
+        title_bar = self.get_title_bar()
         print(title_bar, flush=True)
 
     def format_entry(self, node):
@@ -269,11 +275,15 @@ class TitleBar:
         if isNum:
             return title
 
-        wins = self.get_leaf_nodes(win.workspace())
-        num = wins.index(win) + 1
+        wins = []
+        for workspace in self.get_visible_workspaces():
+            wins += self.get_leaf_nodes(workspace)
+        win_ids = [win.id for win in wins]
+        num = win_ids.index(win.id) + 1
 
         hints = self.get_hint_strings(len(wins))
-        self.hint2win = dict(zip(hints, wins))
+        self.hint2win = dict(zip(hints, win_ids))
+        self.win2hint = dict(zip(win_ids, hints))
         hint = hints[num - 1]
 
         fcolor = self.config['color']['focused-window-hint-foreground-color'] if win.focused \
@@ -287,6 +297,52 @@ class TitleBar:
         hint = Template('%{B$color}$hint%{B-}').substitute(color=bcolor, hint=hint)
 
         return hint + title
+
+    def paint_window_hint_on_screen(self):
+
+        if tkinter._default_root is None:
+            self.tk = tkinter.Tk()
+        # Disable the tkinter title bar
+        # wm_overrideredirect would prevent keyboard listening
+        self.tk.wm_attributes('-type', 'splash')
+        self.tk.geometry("{0}x{1}+0+0".format(self.tk.winfo_screenwidth(), self.tk.winfo_screenheight()))
+
+        self.tk.configure(bg='')
+
+        wins = []
+        for workspace in self.get_visible_workspaces():
+            wins += workspace.leaves()
+        visible_wins = [win for win in wins if self.get_container_visibility(win)]
+
+        if len(visible_wins) > 1:
+            for win in visible_wins:
+                hint = self.win2hint[win.id]
+                label = tkinter.Label(text=hint, font=("", 60))
+                x = win.rect.x + win.rect.width/2 - label.winfo_reqwidth()/2
+                y = win.rect.y + win.rect.height/2 - label.winfo_reqheight()/2
+                label.place(x=x, y=y)
+
+        def key(event):
+            if event.keysym == 'Escape':
+                self.keystroke_queue = []
+                self.tk.destroy()
+            elif event.keysym == 'BackSpace':
+                self.keystroke_queue = self.keystroke_queue[:-1]
+            elif len(event.keysym) == 1:
+                self.keystroke_queue.append(event.char)
+            else:
+                pass
+
+            if ''.join(self.keystroke_queue) in self.hint2win:
+                win_id = self.hint2win[''.join(self.keystroke_queue)]
+                self.keystroke_queue = []
+                self.tk.destroy()
+                win = self.i3.get_tree().find_by_id(win_id)
+                win.command('focus')
+
+        self.tk.bind("<Key>", key)
+
+        self.tk.mainloop()
 
     def get_leaf_nodes(self, node):
         '''Get window objects under a container
@@ -332,11 +388,39 @@ class TitleBar:
 
         return sorted(hints)
 
+    def get_visible_workspaces(self):
+        visible_workspace_names = [output.current_workspace for output in self.i3.get_outputs()
+                                   if output.current_workspace]
+
+        # visible_workspace_ids = [workspace.id for workspace in self.i3.get_workspaces()
+        #                          if workspace.visible]
+
+        visible_workspaces = [workspace for workspace in self.i3.get_tree().workspaces()
+                              if workspace.name in visible_workspace_names]
+        return visible_workspaces
+
+    def get_container_visibility(self, container):
+        '''Check the visibility of a container
+        from con_is_hidden function in https://github.com/i3/i3/blob/master/src/con.c
+        '''
+        current = container
+
+        while current != None and current.type != 'workspace':
+            parent = current.parent
+
+            if (parent != None and (parent.layout == 'tabbed' or parent.layout == 'stacked')) :
+                if (next(iter(parent.focus), None) != current.id):
+                    return False
+
+            current = parent
+
+        return True
+
 
 if __name__ == '__main__':
 
     i3 = i3ipc.Connection()
-    title_bar = TitleBar()
+    title_bar = TitleBar(i3)
 
     def refresh_title_bar(i3, e):
         title_bar.print_title_bar(i3)
@@ -346,7 +430,7 @@ if __name__ == '__main__':
     thread = Thread(target=i3.main)
     thread.start()
 
-    title_bar.print_title_bar(i3)
+    title_bar.print_title_bar()
 
     BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
     pri_keystroke_set = set()
@@ -367,10 +451,6 @@ if __name__ == '__main__':
                 pri_keystroke_set.remove(pri_event.key)
 
             if pri_keystroke_set == BOSS_KEY:
-                # Generate hint
-                title_bar.print_title_bar(i3, hint=True)
-                hints = title_bar.hint2win.keys()
-
                 # Release boss key
                 # Some boss key like ctrl may be hold longer
                 with keyboard.Events() as events:
@@ -384,32 +464,10 @@ if __name__ == '__main__':
                         if len(pri_keystroke_set) == 0:
                             break
 
-                # Type hint
-                # We need to block them being typed to screen
-                is_quit = 0
-                sec_keystroke_queue = []
-                pynput.keyboard.Listener.suppress = True
-                with keyboard.Events() as sec_events:
-                    for sec_event in sec_events:
-                        if ''.join(sec_keystroke_queue) in hints:
-                            break
-                        elif sec_event.key == keyboard.Key.esc:
-                            is_quit = 1
-                            break
-                        elif sec_event.key == keyboard.Key.backspace:
-                            sec_keystroke_queue = sec_keystroke_queue[:-1]
-                        elif isinstance(sec_event.key, pynput.keyboard._xorg.KeyCode):
-                            sec_keystroke_queue.append(sec_event.key.char)
-                        else:
-                            # If sec_event.key is pynput.keyboard._xorg.Key,
-                            # ignore those control keys
-                            pass
+                # Generate hint
+                title_bar.print_title_bar(hint=True)
+                title_bar.paint_window_hint_on_screen()
+                hints = title_bar.hint2win.keys()
 
-                title_bar.print_title_bar(i3)
-                if not is_quit:
-                    # Jump to window
-                    win = title_bar.hint2win[''.join(sec_keystroke_queue)]
-                    win.command('focus')
-                pynput.keyboard.Listener.suppress = False
             else:
-                title_bar.print_title_bar(i3)
+                title_bar.print_title_bar()
