@@ -441,6 +441,15 @@ if __name__ == '__main__':
     BOSS_KEY = {keyboard.Key.ctrl_l, keyboard.Key.alt_l, keyboard.KeyCode(char='a')}
     pri_keystroke_set = set()
 
+    shift_map = {
+        '`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&',
+        '8': '*', '9': '(', '0': ')', '-': '_', '=': '+', 'q': 'Q', 'w': 'W', 'e': 'E',
+        'r': 'R', 't': 'T', 'y': 'Y', 'u': 'U', 'i': 'I', 'o': 'O', 'p': 'P', '[': '{',
+        ']': '}', '\\': '|', 'a': 'A', 's': 'S', 'd': 'D', 'f': 'F', 'g': 'G', 'h': 'H',
+        'j': 'J', 'k': 'K', 'l': 'L', ';': ':', "'": '"', 'z': 'Z', 'x': 'X', 'c': 'C',
+        'v': 'V', 'b': 'B', 'n': 'N', 'm': 'M', ',': '<', '.': '>', '/': '?'
+    }
+
     with keyboard.Events() as pri_events:
         for pri_event in pri_events:
 
@@ -454,7 +463,18 @@ if __name__ == '__main__':
                 2. pri key has hit the BOSS_KEY, so it is released in inner events
                 In both case, we don't need remove keys from it
                 '''
-                pri_keystroke_set.remove(pri_event.key)
+                # If shift-a is pressed, we will record shift and A.
+                # If shift is released first, a later,
+                # The record is {A, a} or {A} after shift released,
+                # due to a is in pressed,
+                # release a from record {A} might cause error
+                if isinstance(pri_event.key, pynput.keyboard._xorg.KeyCode):
+                    shift_char = shift_map.get(pri_event.key.char, pri_event.key.char)
+                    if pynput.keyboard._xorg.KeyCode(char=shift_char) in pri_keystroke_set:
+                        pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(char=shift_char))
+
+                if pri_event.key in pri_keystroke_set:
+                    pri_keystroke_set.remove(pri_event.key)
 
             if pri_keystroke_set == BOSS_KEY:
                 # Release boss key
