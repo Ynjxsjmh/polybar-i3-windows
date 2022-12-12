@@ -502,7 +502,5 @@ if __name__ == '__main__':
                 # Generate hint
                 title_bar.print_title_bar(hint=True)
                 title_bar.paint_window_hint_on_screen()
-                hints = title_bar.hint2win.keys()
-
             else:
                 title_bar.print_title_bar()
