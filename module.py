@@ -435,7 +435,7 @@ class TitleBar:
 
 if __name__ == '__main__':
     logger.remove()
-    logger.add('windows.log')
+    logger.add(os.path.join(SCRIPT_DIR, 'windows.log'))
 
     title_bar = TitleBar()
     title_bar.launch_i3()
