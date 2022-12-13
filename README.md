@@ -14,7 +14,7 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 - [x] Showing split info in title for horizontal and vertical layout
 - [x] Highly customizable styles for window title, such as icon, color, underline, window number.
 - [x] Draw label hint for switch on visible windows.
-- [ ] Hint for all workspaces.
+- [x] Hint for all workspaces.
 - [ ] Mark for window.
 
 Due to lack of mouse hover support by [lemonbar tags](https://github.com/LemonBoy/bar#formatting), there is no mouse hover action.
