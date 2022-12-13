@@ -312,6 +312,12 @@ class TitleBar:
         return hint + title
 
     def paint_window_hint_on_screen(self):
+        '''Show hints for visible windows above it.
+        When there is only one visible window, it won't
+        show hint above it.
+        When the visible window is also the focused window,
+        it won't have above window hint.
+        '''
 
         if tkinter._default_root is None:
             self.tk = tkinter.Tk()
