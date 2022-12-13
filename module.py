@@ -353,7 +353,6 @@ class TitleBar:
 
         self.tk.configure(bg='')
 
-        print('generating workspace hint')
         workspaces = [workspace for workspace in self.i3.get_tree().workspaces()
                       if len(workspace.nodes)]
         # Leaves are not always application windows
