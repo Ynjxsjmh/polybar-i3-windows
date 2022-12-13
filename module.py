@@ -360,6 +360,97 @@ class TitleBar:
 
         self.tk.mainloop()
 
+    def paint_workspace_hint_on_screen(self):
+        '''Show windows under all workspaces with hint on screen
+        '''
+        if tkinter._default_root is None:
+            self.tk = tkinter.Tk()
+        # Disable the tkinter title bar
+        # wm_overrideredirect would prevent keyboard listening
+        self.tk.wm_attributes('-type', 'splash')
+
+        self.tk.configure(bg='')
+
+        print('generating workspace hint')
+        workspaces = [workspace for workspace in self.i3.get_tree().workspaces()
+                      if len(workspace.nodes)]
+        # Leaves are not always application windows
+        wins = []
+        for workspace in workspaces:
+            wins.append(workspace.leaves())
+        win_ids = [win.id for ws in wins for win in ws]
+
+        hints = self.get_hint_strings(len(win_ids))
+        self.hint2win = dict(zip(hints, win_ids))
+        self.win2hint = dict(zip(win_ids, hints))
+
+        ncol = len(workspaces)
+        tot_width = 100
+        col_width = tot_width // ncol
+
+        # The head row
+        for j in range(ncol):
+            t = tkinter.Entry(self.tk, width=col_width,
+                              font=('', 16, 'bold'),
+                              exportselection=False,
+                              justify='center')
+            t.insert('end', workspaces[j].name)
+            t.config(state='disabled')
+            if workspaces[j].focused:
+                t.config(disabledforeground='blue')
+            t.grid(row=0, column=j)
+
+        def on_release(event):
+            text = event.widget
+            hint = text.get(*text.tag_ranges('hint'))
+            win_id = self.hint2win[hint]
+            self.keystroke_queue = []
+            self.tk.destroy()
+            win = self.i3.get_tree().find_by_id(win_id)
+            win.command('focus')
+
+        # The window content
+        for j in range(ncol):
+            for i in range(len(wins[j])):
+                win = wins[j][i]
+                hint = self.win2hint[win.id]
+                win_text = tkinter.Text(self.tk, width=col_width, height=1,
+                                        font=('', 16),
+                                        exportselection=False,
+                                        borderwidth=1, relief='solid')
+                win_text.insert('end', hint+win.name)
+                win_text.bind('<ButtonRelease-1>', on_release)
+                win_text.grid(row=i+1, column=j)
+                # Disable text selection in another way:
+                # by setting the selection bg to default
+                win_text.config(state='disabled',
+                                selectbackground=win_text.cget('bg'),
+                                inactiveselectbackground=win_text.cget('bg'))
+                win_text.tag_add('hint', '1.0', f'1.{len(hint)}')
+                win_text.tag_configure('hint', foreground='red', background='yellow')
+
+        def key(event):
+            if event.keysym == 'Escape':
+                self.keystroke_queue = []
+                self.tk.destroy()
+            elif event.keysym == 'BackSpace':
+                self.keystroke_queue = self.keystroke_queue[:-1]
+            elif len(event.keysym) == 1:
+                self.keystroke_queue.append(event.char)
+            else:
+                pass
+
+            if ''.join(self.keystroke_queue) in self.hint2win:
+                win_id = self.hint2win[''.join(self.keystroke_queue)]
+                self.keystroke_queue = []
+                self.tk.destroy()
+                win = self.i3.get_tree().find_by_id(win_id)
+                win.command('focus')
+
+        self.tk.bind("<Key>", key)
+
+        self.tk.mainloop()
+
     def get_leaf_nodes(self, node):
         '''Get window objects under a container
 
@@ -444,6 +535,8 @@ if __name__ == '__main__':
 
     BOSS_KEY = {getattr(keyboard.Key, key) if len(key) > 1 else keyboard.KeyCode(char=key)
                 for key in json.loads(title_bar.config.get('general', 'hint-key'))}
+    WORKSPACE_KEY = {getattr(keyboard.Key, key) if len(key) > 1 else keyboard.KeyCode(char=key)
+                     for key in json.loads(title_bar.config.get('general', 'workspace-hint-key'))}
     pri_keystroke_set = set()
 
     shift_map = {
@@ -502,5 +595,17 @@ if __name__ == '__main__':
                 # Generate hint
                 title_bar.print_title_bar(hint=True)
                 title_bar.paint_window_hint_on_screen()
+            elif pri_keystroke_set == WORKSPACE_KEY:
+                # Release boss key
+                # Some boss key like ctrl may be hold longer
+                with keyboard.Events() as events:
+                    for event in events:
+                        if event.key in pri_keystroke_set and isinstance(event, pynput.keyboard.Events.Release):
+                            pri_keystroke_set.remove(event.key)
+
+                        if len(pri_keystroke_set) == 0:
+                            break
+
+                title_bar.paint_workspace_hint_on_screen()
             else:
                 title_bar.print_title_bar()
