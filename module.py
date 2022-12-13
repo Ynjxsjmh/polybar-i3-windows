@@ -338,25 +338,7 @@ class TitleBar:
                 y = win.rect.y + win.rect.height/2 - label.winfo_reqheight()/2
                 label.place(x=x, y=y)
 
-        def key(event):
-            if event.keysym == 'Escape':
-                self.keystroke_queue = []
-                self.tk.destroy()
-            elif event.keysym == 'BackSpace':
-                self.keystroke_queue = self.keystroke_queue[:-1]
-            elif len(event.keysym) == 1:
-                self.keystroke_queue.append(event.char)
-            else:
-                pass
-
-            if ''.join(self.keystroke_queue) in self.hint2win:
-                win_id = self.hint2win[''.join(self.keystroke_queue)]
-                self.keystroke_queue = []
-                self.tk.destroy()
-                win = self.i3.get_tree().find_by_id(win_id)
-                win.command('focus')
-
-        self.tk.bind("<Key>", key)
+        self.tk.bind("<Key>", self.check_hint_key)
 
         self.tk.mainloop()
 
@@ -429,25 +411,7 @@ class TitleBar:
                 win_text.tag_add('hint', '1.0', f'1.{len(hint)}')
                 win_text.tag_configure('hint', foreground='red', background='yellow')
 
-        def key(event):
-            if event.keysym == 'Escape':
-                self.keystroke_queue = []
-                self.tk.destroy()
-            elif event.keysym == 'BackSpace':
-                self.keystroke_queue = self.keystroke_queue[:-1]
-            elif len(event.keysym) == 1:
-                self.keystroke_queue.append(event.char)
-            else:
-                pass
-
-            if ''.join(self.keystroke_queue) in self.hint2win:
-                win_id = self.hint2win[''.join(self.keystroke_queue)]
-                self.keystroke_queue = []
-                self.tk.destroy()
-                win = self.i3.get_tree().find_by_id(win_id)
-                win.command('focus')
-
-        self.tk.bind("<Key>", key)
+        self.tk.bind("<Key>", self.check_hint_key)
 
         self.tk.mainloop()
 
@@ -522,6 +486,24 @@ class TitleBar:
             current = parent
 
         return True
+
+    def check_hint_key(self, event):
+        if event.keysym == 'Escape':
+            self.keystroke_queue = []
+            self.tk.destroy()
+        elif event.keysym == 'BackSpace':
+            self.keystroke_queue = self.keystroke_queue[:-1]
+        elif len(event.keysym) == 1:
+            self.keystroke_queue.append(event.char)
+        else:
+            pass
+
+        if ''.join(self.keystroke_queue) in self.hint2win:
+            win_id = self.hint2win[''.join(self.keystroke_queue)]
+            self.keystroke_queue = []
+            self.tk.destroy()
+            win = self.i3.get_tree().find_by_id(win_id)
+            win.command('focus')
 
 
 if __name__ == '__main__':
