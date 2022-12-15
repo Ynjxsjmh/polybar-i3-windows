@@ -25,6 +25,7 @@ class TitleBar:
         self.hint = False
         self.hint2win = dict()
         self.win2hint = dict()
+        self.hint_trie = None
 
         self.config = configparser.ConfigParser()
         self.config.read(os.path.join(SCRIPT_DIR, 'default.ini'))
@@ -297,6 +298,7 @@ class TitleBar:
         hints = self.get_hint_strings(len(wins))
         self.hint2win = dict(zip(hints, win_ids))
         self.win2hint = dict(zip(win_ids, hints))
+        self.hint_trie = self.get_hint_trie(hints)
         hint = hints[num - 1]
 
         fcolor = self.config['color']['focused-window-hint-foreground-color'] if win.focused \
@@ -370,6 +372,7 @@ class TitleBar:
         hints = self.get_hint_strings(len(win_ids))
         self.hint2win = dict(zip(hints, win_ids))
         self.win2hint = dict(zip(win_ids, hints))
+        self.hint_trie = self.get_hint_trie(hints)
 
         ncol = len(workspaces)
         tot_width = 100
@@ -492,6 +495,12 @@ class TitleBar:
 
         return True
 
+    def get_hint_trie(self, hints):
+        hint_trie = HintTrie()
+        for hint in hints:
+            hint_trie.insert(hint)
+        return hint_trie
+
     def check_hint_key(self, event):
         if event.keysym == 'Escape':
             self.keystroke_queue = []
@@ -503,12 +512,47 @@ class TitleBar:
         else:
             pass
 
-        if ''.join(self.keystroke_queue) in self.hint2win:
+        is_hint = self.hint_trie.match_hint(''.join(self.keystroke_queue))
+        if is_hint == 0:
+            self.keystroke_queue = []
+            self.tk.destroy()
+        elif is_hint == 2:
             win_id = self.hint2win[''.join(self.keystroke_queue)]
             self.keystroke_queue = []
             self.tk.destroy()
             win = self.i3.get_tree().find_by_id(win_id)
             win.command('focus')
+        else:
+            pass
+
+
+class HintTrie:
+    def __init__(self):
+        self.children = {}
+        self.is_hint = False
+
+    def insert(self, hint):
+        node = self
+
+        for ch in hint:
+            if ch not in node.children:
+                node.children[ch] = HintTrie()
+            node = node.children[ch]
+
+        node.is_hint = True
+
+    def match_hint(self, hint):
+        node = self
+
+        for ch in hint:
+            if ch not in node.children:
+                return 0
+            node = node.children[ch]
+
+        if node.is_hint:
+            return 2
+        else:
+            return 1
 
 
 if __name__ == '__main__':
