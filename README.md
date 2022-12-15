@@ -11,7 +11,7 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 - [x] Focus window with left mouse button click
 - [x] Scroll through window with mouse wheel
 - [x] Highlight urgent window
-- [x] Showing split info in title for horizontal and vertical layout
+- [x] Show split info in title for horizontal and vertical layout
 - [x] Highly customizable styles for window title, such as icon, color, underline, window number.
 - [x] Draw label hint for switch on visible windows.
 - [x] Hint for all workspaces.
@@ -20,8 +20,6 @@ This script is an enhancement version of [meelkor/polybar-i3-windows](https://gi
 Due to lack of mouse hover support by [lemonbar tags](https://github.com/LemonBoy/bar#formatting), there is no mouse hover action.
 
 ## Usage
-
-This script currently only supports tabbed layout. It couldn't ensure the behavior under stacked layout and nested tabbed/stacked layout. Due to [lack of split event](https://github.com/i3/i3/issues/3542) of i3 RPC api, it doesn't ensure real-time display of window split change.
 
 Follow under steps to use it with your polybar
 
