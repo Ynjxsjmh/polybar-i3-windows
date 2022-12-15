@@ -558,9 +558,16 @@ if __name__ == '__main__':
                 logger.debug(pri_keystroke_set)
                 logger.debug(f'Release key {pri_event.key}')
                 if isinstance(pri_event.key, pynput.keyboard._xorg.KeyCode):
-                    shift_char = shift_map.get(pri_event.key.char, pri_event.key.char)
+                    shift_char = shift_map.get(pri_event.key.char, pri_event.key)
                     if pynput.keyboard._xorg.KeyCode(char=shift_char) in pri_keystroke_set:
                         pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(char=shift_char))
+
+                if pri_event.key == getattr(keyboard.Key, 'tab'):
+                    # Press Shift then Tab, Tab is recognized as <65056>.
+                    # If release Tab first, then Shift, Tab is still recognized as <65056>.
+                    # However, if release Shift first, then Tab, Tab is recognized as Tab.
+                    if pynput.keyboard._xorg.KeyCode(vk=65056) in pri_keystroke_set:
+                        pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(vk=65056))
 
                 if pri_event.key in pri_keystroke_set:
                     pri_keystroke_set.remove(pri_event.key)
