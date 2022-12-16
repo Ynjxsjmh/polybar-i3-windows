@@ -578,6 +578,8 @@ if __name__ == '__main__':
         'j': 'J', 'k': 'K', 'l': 'L', ';': ':', "'": '"', 'z': 'Z', 'x': 'X', 'c': 'C',
         'v': 'V', 'b': 'B', 'n': 'N', 'm': 'M', ',': '<', '.': '>', '/': '?'
     }
+    special_shifts = [getattr(keyboard.Key, key)
+                      for key in ['tab', 'alt_l', 'alt_r', 'print_screen']]
 
     with keyboard.Events() as pri_events:
         for pri_event in pri_events:
@@ -606,12 +608,13 @@ if __name__ == '__main__':
                     if pynput.keyboard._xorg.KeyCode(char=shift_char) in pri_keystroke_set:
                         pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(char=shift_char))
 
-                if pri_event.key == getattr(keyboard.Key, 'tab'):
+                if pri_event.key in special_shifts:
                     # Press Shift then Tab, Tab is recognized as <65056>.
                     # If release Tab first, then Shift, Tab is still recognized as <65056>.
                     # However, if release Shift first, then Tab, Tab is recognized as Tab.
-                    if pynput.keyboard._xorg.KeyCode(vk=65056) in pri_keystroke_set:
-                        pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(vk=65056))
+                    for vk in [65056, 65511, 65512, 65301]: # tab, alt_l, alt_r, print_screen
+                        if pynput.keyboard._xorg.KeyCode(vk=vk) in pri_keystroke_set:
+                            pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(vk=vk))
 
                 if pri_event.key in pri_keystroke_set:
                     pri_keystroke_set.remove(pri_event.key)
