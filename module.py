@@ -578,8 +578,11 @@ if __name__ == '__main__':
         'j': 'J', 'k': 'K', 'l': 'L', ';': ':', "'": '"', 'z': 'Z', 'x': 'X', 'c': 'C',
         'v': 'V', 'b': 'B', 'n': 'N', 'm': 'M', ',': '<', '.': '>', '/': '?'
     }
-    special_shifts = [getattr(keyboard.Key, key)
-                      for key in ['tab', 'alt_l', 'alt_r', 'print_screen']]
+    special_shift_key_map = dict(zip([getattr(keyboard.Key, key)
+                                      for key in ['tab', 'alt_l', 'alt_r', 'print_screen']],
+                                     [pynput.keyboard._xorg.KeyCode(vk=vk)
+                                      for vk  in [65056, 65511, 65512, 65301]]))
+    special_shift_key_map = {**special_shift_key_map, **{v: k for k, v in special_shift_key_map.items()}}
 
     with keyboard.Events() as pri_events:
         for pri_event in pri_events:
@@ -608,13 +611,24 @@ if __name__ == '__main__':
                     if pynput.keyboard._xorg.KeyCode(char=shift_char) in pri_keystroke_set:
                         pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(char=shift_char))
 
-                if pri_event.key in special_shifts:
-                    # Press Shift then Tab, Tab is recognized as <65056>.
-                    # If release Tab first, then Shift, Tab is still recognized as <65056>.
-                    # However, if release Shift first, then Tab, Tab is recognized as Tab.
-                    for vk in [65056, 65511, 65512, 65301]: # tab, alt_l, alt_r, print_screen
-                        if pynput.keyboard._xorg.KeyCode(vk=vk) in pri_keystroke_set:
-                            pri_keystroke_set.remove(pynput.keyboard._xorg.KeyCode(vk=vk))
+                if pri_event.key in special_shift_key_map:
+                    # Shift 和某些键组合会产生新键
+                    # Example case: 新键代码用<>表示
+                    #   1. 不需要处理这种情况
+                    #      Press Key.Shift, press Key.tab <65056>
+                    #      Release Key.tab <65056>, release Key.Shift
+                    #   2. 需要处理这种情况
+                    #      Press Key.Shift, press Key.tab <65056>
+                    #      Release Key.Shift, release Key.tab (65289)
+                    #   3. 需要处理这种情况
+                    #      Press Key.tab (65289), press Key.Shift
+                    #      Release Key.tab <65056>, release Key.Shift
+                    #   4. 不需要处理这种情况
+                    #      Press Key.tab (65289), press Key.Shift
+                    #      Release Key.Shift, release Key.tab (65289)
+                    special_key = special_shift_key_map[pri_event.key]
+                    if special_key in pri_keystroke_set:
+                        pri_keystroke_set.remove(special_key)
 
                 if pri_event.key in pri_keystroke_set:
                     pri_keystroke_set.remove(pri_event.key)
